@@ -37,13 +37,13 @@ export function ReaderControls({
   onManage: () => void;
 }) {
   const { colors } = useTheme();
-  const { dir, t } = useI18n();
+  const { dir, locale, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <View style={styles.wrap}>
       <View style={styles.segment}>
-        {MODES.map(({ mode: m, labelKey }) => (
+        {MODES.filter(({ mode: m }) => locale === "en" || m !== "reading-tr").map(({ mode: m, labelKey }) => (
           <Pressable
             key={m}
             style={[styles.segItem, m === mode && styles.segItemOn]}
@@ -100,9 +100,11 @@ export function ReaderControls({
           >
             <Text style={[styles.toggleText, { writingDirection: dir }, tapToHear && styles.toggleTextOn]}>{t("reader.wordAudio")}</Text>
           </Pressable>
-          <Pressable style={styles.manage} onPress={onManage}>
-            <Text style={styles.manageText}>⚙</Text>
-          </Pressable>
+          {locale === "en" && (
+            <Pressable style={styles.manage} onPress={onManage} accessibilityLabel={t("reader.selectTranslations")}>
+              <Text style={styles.manageText}>⚙</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </View>

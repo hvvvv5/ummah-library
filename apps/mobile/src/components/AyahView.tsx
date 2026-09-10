@@ -49,6 +49,8 @@ interface Props {
   peekExtra?: ReadonlySet<number>;
   /** Also conceal the translation while memorizing. */
   peekHideTr?: boolean;
+  /** UI-level visibility only; source translation data and preferences remain intact. */
+  showTranslations?: boolean;
   onPeekWord?: (globalIndex: number) => void;
 }
 
@@ -79,6 +81,7 @@ function AyahViewImpl({
   peekRevealed = 0,
   peekExtra,
   peekHideTr = false,
+  showTranslations = true,
   onPeekWord,
 }: Props) {
   const t = useT();
@@ -100,7 +103,7 @@ function AyahViewImpl({
   }, [copied]);
 
   const share = async () => {
-    const block = [arabic, ...translations.map((t) => t.text), `— ${sura}:${aya}`]
+    const block = [arabic, ...(showTranslations ? translations.map((t) => t.text) : []), `— ${sura}:${aya}`]
       .filter(Boolean)
       .join("\n");
     const link = `https://ummahlibrary.org/surah/${sura}#${sura}:${aya}`;
@@ -215,7 +218,7 @@ function AyahViewImpl({
         </Text>
       ) : null}
 
-      {!peekHideTr &&
+      {showTranslations && !peekHideTr &&
         translations.map((t) => (
           <View key={t.id} style={styles.tr}>
             {translations.length > 1 && <Text style={styles.trName}>{t.name}</Text>}

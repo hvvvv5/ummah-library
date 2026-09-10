@@ -23,7 +23,8 @@ import { DEFAULT_EDITION, TRANSLIT_EDITION } from "../types";
 import { fetchSurahWordTranslit } from "../word-translit";
 import { fetchSurahIndopak } from "../indopak";
 import type { ReadStackParamList } from "../navigation/types";
-import { useT } from "../i18n/I18nProvider";
+import { useI18n } from "../i18n/I18nProvider";
+import { showQuranTranslations } from "../i18n/quran-presentation";
 
 type Props = NativeStackScreenProps<ReadStackParamList, "JuzReader">;
 
@@ -60,7 +61,8 @@ function juzRange(juz: number): { sura: number; from: number; toExclusive: numbe
 }
 
 export function JuzReaderScreen({ route }: Props) {
-  const t = useT();
+  const { locale, t } = useI18n();
+  const showTranslations = showQuranTranslations(locale);
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const {
@@ -105,7 +107,7 @@ export function JuzReaderScreen({ route }: Props) {
       parts.map(async (p) => {
         const [surah, tr, translit, wordTranslit, indopak] = await Promise.all([
           api.getSurah(p.sura),
-          api.getCatalogTranslation(edition, p.sura).catch(() => []),
+          showTranslations ? api.getCatalogTranslation(edition, p.sura).catch(() => []) : Promise.resolve([]),
           transliteration
             ? api.getCatalogTranslation(TRANSLIT_EDITION, p.sura).catch(() => [])
             : Promise.resolve([]),
@@ -129,7 +131,7 @@ export function JuzReaderScreen({ route }: Props) {
             aya: a.aya,
             arabic: ipk ? ipk.join(" ") : a.text,
             words: ipk ?? a.text.split(" "),
-            translation: trByAya.get(a.aya) ?? "",
+            translation: showTranslations ? (trByAya.get(a.aya) ?? "") : "",
             transliteration: translitByAya.get(a.aya) ?? "",
             translitWords: wordTranslit.get(a.aya) ?? [],
             surahHeader:
@@ -149,7 +151,7 @@ export function JuzReaderScreen({ route }: Props) {
       active = false;
       audio.stop();
     };
-  }, [juz, edition, transliteration, wordTransliteration, script, reloadToken]);
+  }, [juz, edition, transliteration, wordTransliteration, script, reloadToken, showTranslations]);
 
   const verses = useMemo(() => (lines ?? []).map((l) => ({ sura: l.sura, aya: l.aya })), [lines]);
   const listSurahs = useMemo(() => Array.from(new Set(verses.map((v) => v.sura))), [verses]);

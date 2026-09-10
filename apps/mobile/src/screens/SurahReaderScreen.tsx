@@ -43,6 +43,7 @@ import { AyahView, type TrLine } from "../components/AyahView";
 import { recordMushafPage } from "../reading-goals";
 import { readActivePlan, todayProgress, todayStr, type ActivePlan } from "../plans";
 import { useI18n, useT } from "../i18n/I18nProvider";
+import { showQuranTranslations, visibleReadingMode } from "../i18n/quran-presentation";
 import type { ReadStackParamList } from "../navigation/types";
 
 type Props = NativeStackScreenProps<ReadStackParamList, "SurahReader">;
@@ -52,7 +53,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
   // passes a number — coerce so core helpers (which require integers) are safe.
   const n = Number(route.params.surah);
   const { colors } = useTheme();
-  const { dir, t } = useI18n();
+  const { dir, locale, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const settings = useSettings();
   const {
@@ -74,6 +75,8 @@ export function SurahReaderScreen({ navigation, route }: Props) {
     setWordTransliteration,
     setTapToHear,
   } = settings;
+  const showTranslations = showQuranTranslations(locale);
+  const displayReadingMode = visibleReadingMode(locale, readingMode);
   const { setLastRead, isBookmarked, toggleBookmark } = useLibrary();
 
   const reciter = RECITERS.find((r) => r.id === reciterId) ?? RECITER;
@@ -181,6 +184,10 @@ export function SurahReaderScreen({ navigation, route }: Props) {
 
   // Fetch every selected edition's text for this surah.
   useEffect(() => {
+    if (!showTranslations) {
+      setTrMap(new Map());
+      return;
+    }
     let active = true;
     Promise.all(
       editions.map((id) =>
@@ -195,7 +202,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
     return () => {
       active = false;
     };
-  }, [n, editions]);
+  }, [n, editions, showTranslations]);
 
   // Fetch the transliteration edition for this surah only while the toggle is on.
   useEffect(() => {
@@ -282,9 +289,9 @@ export function SurahReaderScreen({ navigation, route }: Props) {
           words: ipk ?? a.text.split(" "),
           transliteration: transliteration ? (translitMap.get(a.aya) ?? null) : null,
           translitWords: wordTransliteration ? (wordTranslitMap.get(a.aya) ?? null) : null,
-          translations: editions
-            .map((id) => trLineFor(id, a.aya))
-            .filter((x): x is TrLine => x !== null),
+          translations: showTranslations
+            ? editions.map((id) => trLineFor(id, a.aya)).filter((x): x is TrLine => x !== null)
+            : [],
         };
       }),
     [
@@ -299,6 +306,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
       wordTranslitMap,
       script,
       indopakMap,
+      showTranslations,
     ],
   );
 
@@ -354,6 +362,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
         arabic={item.arabic}
         words={item.words}
         translations={item.translations}
+        showTranslations={showTranslations}
         transliteration={item.transliteration}
         translitWords={item.translitWords}
         tapToHear={tapToHear}
@@ -413,7 +422,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
     return m;
   }, [rows]);
   useEffect(() => {
-    if (readingMode !== "translation" || !playingKey) return;
+    if (displayReadingMode !== "translation" || !playingKey) return;
     const index = indexOfKey.get(playingKey);
     if (index == null) return;
     try {
@@ -421,7 +430,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
     } catch {
       /* list not ready */
     }
-  }, [playingKey, readingMode, indexOfKey]);
+  }, [playingKey, displayReadingMode, indexOfKey]);
 
   const shortlist = useMemo(
     () => editions.map((id) => metaById.get(id)).filter((x): x is Translation => Boolean(x)),
@@ -474,7 +483,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
       </View>
 
       <ReaderControls
-        mode={readingMode}
+        mode={displayReadingMode}
         onMode={setReadingMode}
         scale={scale}
         onScale={setScale}
@@ -559,7 +568,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.screen}>
-      {readingMode === "translation" ? (
+      {displayReadingMode === "translation" ? (
         // Virtualized so a long sūrah renders only the visible āyāt; combined
         // with the stable callbacks above, a word-tick re-renders just the
         // playing āyah instead of the whole list.
@@ -604,7 +613,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
         <ScrollView contentContainerStyle={styles.content}>
           {header}
 
-          {readingMode === "reading-tr" && (
+          {showTranslations && displayReadingMode === "reading-tr" && (
             <ReadingTranslationPicker
               shortlist={shortlist}
               activeId={activeTr}
@@ -613,11 +622,11 @@ export function SurahReaderScreen({ navigation, route }: Props) {
             />
           )}
 
-          {showBismillah && readingMode === "reading" && (
+          {showBismillah && displayReadingMode === "reading" && (
             <Text style={[styles.basmala, { fontSize: 22 * scale }]}>{BISMILLAH}</Text>
           )}
 
-          {readingMode === "reading" && (
+          {displayReadingMode === "reading" && (
             <Text
               style={[
                 styles.mushaf,
@@ -637,7 +646,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
             </Text>
           )}
 
-          {readingMode === "reading-tr" && (
+          {showTranslations && displayReadingMode === "reading-tr" && (
             <Text style={[styles.flow, { fontSize: 17 * scale, lineHeight: 30 * scale }]}>
               {ayahs.map((a) => {
                 const text = trMap.get(activeTr)?.get(a.aya);
@@ -663,7 +672,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
       )}
 
       <TranslationManager
-        visible={managerOpen}
+        visible={showTranslations && managerOpen}
         catalogue={catalogue}
         selected={editions}
         onChange={setEditions}
