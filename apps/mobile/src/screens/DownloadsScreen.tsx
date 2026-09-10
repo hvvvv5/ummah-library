@@ -14,6 +14,7 @@ import { FONT } from "../fonts";
 import { api } from "../api";
 import { RECITERS } from "../plugins";
 import { mobileAudioStore } from "../audio/audio-store";
+import { useI18n } from "../i18n/I18nProvider";
 
 function fmtBytes(b: number): string {
   if (b < 1024) return `${b} B`;
@@ -27,6 +28,7 @@ const RECITER_NAMES: Record<string, string> = Object.fromEntries(
 
 export function DownloadsScreen() {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [items, setItems] = useState<DownloadedSurah[] | null>(null);
   const [surahNames, setSurahNames] = useState<Record<number, string>>({});
@@ -63,11 +65,8 @@ export function DownloadsScreen() {
     return (
       <View style={styles.center}>
         <Icon name="download" size={40} color={colors.faint} sw={1.5} />
-        <Text style={styles.emptyTitle}>Nothing downloaded yet</Text>
-        <Text style={styles.emptyDesc}>
-          Open a surah and tap the download button in the audio bar to save it for offline
-          listening. Saved recitations play with no connection.
-        </Text>
+        <Text style={[styles.emptyTitle, { writingDirection: dir }]}>{t("downloads.emptyTitle")}</Text>
+        <Text style={[styles.emptyDesc, { writingDirection: dir }]}>{t("downloads.emptyBody")}</Text>
       </View>
     );
   }
@@ -75,7 +74,7 @@ export function DownloadsScreen() {
   return (
     <ScrollView contentContainerStyle={styles.screen}>
       <Text style={styles.summary}>
-        {items.length} download{items.length === 1 ? "" : "s"} · {fmtBytes(total)} on this device
+        {t(items.length === 1 ? "downloads.summaryOne" : "downloads.summary", { count: items.length, size: fmtBytes(total) })}
       </Text>
       {items.map((it) => {
         const full = ayahCountOf(it.surah);
@@ -83,11 +82,11 @@ export function DownloadsScreen() {
         return (
           <View key={`${it.reciterId}:${it.surah}`} style={styles.card}>
             <View style={styles.info}>
-              <Text style={styles.title}>{surahNames[it.surah] ?? `Surah ${it.surah}`}</Text>
+              <Text style={[styles.title, { writingDirection: dir }]}>{surahNames[it.surah] ?? t("downloads.surahFallback", { number: it.surah })}</Text>
               <Text style={styles.sub}>
                 {RECITER_NAMES[it.reciterId] ?? it.reciterId} · {it.ayahCount}/{full} āyāt ·{" "}
                 {fmtBytes(it.bytes)}
-                {partial ? <Text style={styles.partial}> · incomplete</Text> : null}
+                {partial ? <Text style={styles.partial}>{t("downloads.incomplete")}</Text> : null}
               </Text>
             </View>
             <Pressable
@@ -96,7 +95,7 @@ export function DownloadsScreen() {
                 await mobileAudioStore.removeSurah(it.reciterId, it.surah);
                 refresh();
               }}
-              accessibilityLabel={`Delete ${surahNames[it.surah] ?? `Surah ${it.surah}`} download`}
+              accessibilityLabel={t("downloads.delete", { name: surahNames[it.surah] ?? t("downloads.surahFallback", { number: it.surah }) })}
               hitSlop={8}
             >
               <Icon name="close" size={16} color={colors.muted} sw={1.8} />

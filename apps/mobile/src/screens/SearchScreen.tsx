@@ -16,6 +16,7 @@ import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
 import { KEYS, getJSON, setJSON } from "../storage";
 import type { ReadStackParamList } from "../navigation/types";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<ReadStackParamList, "Search">;
 
@@ -36,18 +37,18 @@ interface SearchItem {
   surah?: number; // ayah / surah navigation target
 }
 
-const TYPE_LABEL: Record<ResultType, string> = {
-  ayah: "Verse",
-  surah: "Surah",
-  name: "Name of Allah",
-  adhkar: "Adhkār",
+const TYPE_LABEL: Record<ResultType, "search.type.ayah" | "search.type.surah" | "search.type.name" | "search.type.adhkar"> = {
+  ayah: "search.type.ayah",
+  surah: "search.type.surah",
+  name: "search.type.name",
+  adhkar: "search.type.adhkar",
 };
 
-const FILTERS: { key: "all" | ResultType; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "ayah", label: "Quran" },
-  { key: "name", label: "Names" },
-  { key: "adhkar", label: "Adhkār" },
+const FILTERS: { key: "all" | ResultType; labelKey: "search.filter.all" | "search.filter.quran" | "search.filter.names" | "search.filter.adhkar" }[] = [
+  { key: "all", labelKey: "search.filter.all" },
+  { key: "ayah", labelKey: "search.filter.quran" },
+  { key: "name", labelKey: "search.filter.names" },
+  { key: "adhkar", labelKey: "search.filter.adhkar" },
 ];
 
 // The unified index is large (~6k āyāt × 2 languages); build it once per session
@@ -148,6 +149,7 @@ function highlight(text: string, q: string, hl: object): ReactNode {
 
 export function SearchScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [query, setQuery] = useState("");
@@ -242,8 +244,8 @@ export function SearchScreen({ navigation }: Props) {
       <View style={styles.field}>
         <Icon name="search" size={20} color={colors.muted} sw={1.8} />
         <TextInput
-          style={styles.input}
-          placeholder="Search verses, names, adhkār…"
+          style={[styles.input, { writingDirection: dir, textAlign: dir === "rtl" ? "right" : "left" }]}
+          placeholder={t("search.placeholder")}
           placeholderTextColor={colors.muted}
           value={query}
           onChangeText={run}
@@ -271,7 +273,7 @@ export function SearchScreen({ navigation }: Props) {
                 onPress={() => setFilter(f.key)}
               >
                 <Text style={[styles.pillText, on && styles.pillTextOn]}>
-                  {f.label} {count}
+                  {t(f.labelKey)} {count}
                 </Text>
               </Pressable>
             );
@@ -283,7 +285,7 @@ export function SearchScreen({ navigation }: Props) {
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
           {history.length > 0 && (
             <>
-              <Text style={styles.sectionLabel}>Recent</Text>
+              <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("search.recent")}</Text>
               <View style={styles.chipWrap}>
                 {history.map((h) => (
                   <Pressable key={h} style={styles.chip} onPress={() => run(h)}>
@@ -293,7 +295,7 @@ export function SearchScreen({ navigation }: Props) {
               </View>
             </>
           )}
-          <Text style={styles.sectionLabel}>Try a topic</Text>
+          <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("search.tryTopic")}</Text>
           <View style={styles.chipWrap}>
             {TOPICS.map((t) => (
               <Pressable key={t} style={styles.chip} onPress={() => run(t)}>
@@ -304,7 +306,7 @@ export function SearchScreen({ navigation }: Props) {
           {!indexReady && (
             <View style={styles.indexing}>
               <ActivityIndicator color={colors.accent} />
-              <Text style={styles.muted}>Building search index…</Text>
+              <Text style={[styles.muted, { writingDirection: dir }]}>{t("search.buildingIndex")}</Text>
             </View>
           )}
         </ScrollView>
@@ -312,13 +314,13 @@ export function SearchScreen({ navigation }: Props) {
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
           <Text style={styles.resultMeta}>
             {!indexReady
-              ? "Searching…"
-              : `${filtered.length} result${filtered.length !== 1 ? "s" : ""} for “${q}”`}
+              ? t("search.searching")
+              : t(filtered.length === 1 ? "search.result" : "search.results", { count: filtered.length, query: q })}
           </Text>
           {filtered.map((r, i) => (
             <Pressable key={`${r.type}:${r.ref}:${i}`} style={styles.card} onPress={() => openResult(r)}>
               <View style={styles.cardHead}>
-                <Text style={styles.badge}>{TYPE_LABEL[r.type]}</Text>
+                <Text style={[styles.badge, { writingDirection: dir }]}>{t(TYPE_LABEL[r.type])}</Text>
                 <Text style={styles.cardRef}>{r.ref}</Text>
               </View>
               {r.ar ? (
@@ -334,8 +336,8 @@ export function SearchScreen({ navigation }: Props) {
           ))}
           {indexReady && filtered.length === 0 && (
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>Nothing found</Text>
-              <Text style={styles.muted}>Try another word, or a topic like “mercy”.</Text>
+              <Text style={[styles.emptyTitle, { writingDirection: dir }]}>{t("search.nothingFound")}</Text>
+              <Text style={[styles.muted, { writingDirection: dir }]}>{t("search.tryAnother")}</Text>
             </View>
           )}
         </ScrollView>

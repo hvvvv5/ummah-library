@@ -15,6 +15,7 @@ import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
 import { adhkarToday } from "../utils";
 import { AdhkarReminderToggle } from "../components/AdhkarReminderToggle";
+import { useT } from "../i18n/I18nProvider";
 
 interface Stored {
   date: string;
@@ -31,6 +32,7 @@ async function saveCounts(counts: Record<string, number>): Promise<void> {
 }
 
 export function AdhkarScreen() {
+  const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -94,13 +96,13 @@ export function AdhkarScreen() {
   if (status === "error") {
     const message =
       error && !error.isNetworkError && error.status && error.status >= 500
-        ? "The server is starting up. Try again in a moment."
-        : "Could not load adhkar. Check your connection.";
+        ? t("adhkar.loadStartingError")
+        : t("adhkar.loadError");
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>{message}</Text>
         <Pressable style={styles.chip} onPress={retry}>
-          <Text style={styles.chipText}>Try again</Text>
+          <Text style={styles.chipText}>{t("adhkar.tryAgain")}</Text>
         </Pressable>
       </View>
     );
@@ -134,10 +136,10 @@ export function AdhkarScreen() {
           />
         </View>
         <Text style={[styles.progressText, allDone && styles.progressTextDone]}>
-          {allDone ? "Completed for today 🤍" : `${progress.completed} / ${progress.total} done`}
+          {allDone ? t("adhkar.completed") : t("adhkar.progress", { completed: progress.completed, total: progress.total })}
         </Text>
         <Pressable style={styles.resetChip} onPress={reset}>
-          <Text style={styles.resetChipText}>Reset</Text>
+          <Text style={styles.resetChipText}>{t("adhkar.reset")}</Text>
         </Pressable>
       </View>
 
@@ -149,7 +151,7 @@ export function AdhkarScreen() {
             key={d.id}
             style={[styles.card, done && styles.cardDone]}
             onPress={() => tap(d)}
-            accessibilityLabel={`${d.transliteration}, tap to count, ${count} of ${d.repeat}`}
+            accessibilityLabel={t("adhkar.accessibility", { name: d.transliteration, count, total: d.repeat })}
           >
             <Text style={styles.arabic}>{d.arabic}</Text>
             <Text style={styles.translit}>{d.transliteration}</Text>
@@ -169,7 +171,7 @@ export function AdhkarScreen() {
                 </Text>
               </View>
               <Text style={[styles.status, done && styles.statusDone]}>
-                {done ? "✓ Done" : "Tap to count"}
+                {done ? t("adhkar.done") : t("adhkar.tapToCount")}
               </Text>
             </View>
           </Pressable>

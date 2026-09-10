@@ -23,6 +23,7 @@ import { DEFAULT_EDITION } from "../types";
 import { useTheme, type Palette } from "../theme";
 import { useLibrary, newCollectionId } from "../state/LibraryContext";
 import type { MoreStackParamList } from "../navigation/types";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<MoreStackParamList, "Collections">;
 
@@ -33,6 +34,7 @@ interface AyahText {
 
 export function CollectionsScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { collections, notes, updateCollections } = useLibrary();
   const [names, setNames] = useState<Record<number, string>>({});
@@ -89,37 +91,34 @@ export function CollectionsScreen({ navigation }: Props) {
   function addCollection() {
     updateCollections([
       ...collections,
-      { id: newCollectionId(), name: `Collection ${collections.length + 1}`, ayahs: [] },
+      { id: newCollectionId(), name: t("collections.defaultName", { number: collections.length + 1 }), ayahs: [] },
     ]);
   }
 
   function confirmDelete(id: string, name: string) {
-    Alert.alert("Delete collection", `Delete “${name}”? Saved āyāt in it will be removed.`, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => updateCollections(deleteCollection(collections, id)) },
+    Alert.alert(t("collections.deleteTitle"), t("collections.deleteBody", { name }), [
+      { text: t("settings.cancel"), style: "cancel" },
+      { text: t("collections.delete"), style: "destructive", onPress: () => updateCollections(deleteCollection(collections, id)) },
     ]);
   }
 
   return (
     <ScrollView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
       <View style={styles.head}>
-        <Text style={styles.h1}>Bookmarks</Text>
+        <Text style={[styles.h1, { writingDirection: dir }]}>{t("nav.bookmarks")}</Text>
         <Pressable style={styles.newBtn} onPress={addCollection}>
-          <Text style={styles.newText}>＋ New</Text>
+          <Text style={[styles.newText, { writingDirection: dir }]}>{t("collections.new")}</Text>
         </Pressable>
       </View>
-      <Text style={styles.subtitle}>Your saved verses and collections</Text>
+      <Text style={[styles.subtitle, { writingDirection: dir }]}>{t("collections.subtitle")}</Text>
 
       {collections.length === 0 ? (
         <View style={styles.empty}>
           <Khatam size={64} color={colors.accent} sw={1.2} opacity={0.5} />
-          <Text style={styles.emptyTitle}>No bookmarks yet</Text>
-          <Text style={styles.emptyBody}>
-            Open any surah, tap <Text style={styles.accentInline}>☆ Save</Text> under an āyah, and
-            group your favourite verses into collections here.
-          </Text>
+          <Text style={[styles.emptyTitle, { writingDirection: dir }]}>{t("collections.emptyTitle")}</Text>
+          <Text style={[styles.emptyBody, { writingDirection: dir }]}>{t("collections.emptyBody")}</Text>
           <Pressable style={styles.emptyBtn} onPress={addCollection}>
-            <Text style={styles.emptyBtnText}>Create a collection</Text>
+            <Text style={[styles.emptyBtnText, { writingDirection: dir }]}>{t("collections.create")}</Text>
           </Pressable>
         </View>
       ) : (
@@ -133,12 +132,12 @@ export function CollectionsScreen({ navigation }: Props) {
               />
               <Text style={styles.collCount}>{c.ayahs.length}</Text>
               <Pressable onPress={() => confirmDelete(c.id, c.name)} hitSlop={8}>
-                <Text style={styles.delete}>Delete</Text>
+                <Text style={[styles.delete, { writingDirection: dir }]}>{t("collections.delete")}</Text>
               </Pressable>
             </View>
 
             {c.ayahs.length === 0 ? (
-              <Text style={styles.muted}>Empty — save āyāt to it from the reader.</Text>
+              <Text style={[styles.muted, { writingDirection: dir }]}>{t("collections.empty")}</Text>
             ) : (
               c.ayahs.map((ref) => {
                 const key = ayahKey(ref);
@@ -152,7 +151,7 @@ export function CollectionsScreen({ navigation }: Props) {
                       <Pressable
                         onPress={() => updateCollections(toggleAyah(collections, c.id, ref))}
                         hitSlop={8}
-                        accessibilityLabel={`Remove ${key}`}
+                        accessibilityLabel={t("collections.remove", { reference: key })}
                       >
                         <Text style={styles.remove}>✕</Text>
                       </Pressable>
@@ -177,7 +176,7 @@ export function CollectionsScreen({ navigation }: Props) {
                           ?.navigate("Read", { screen: "SurahReader", params: { surah: ref.sura } } as never)
                       }
                     >
-                      <Text style={styles.openText}>Open in reader</Text>
+                      <Text style={[styles.openText, { writingDirection: dir }]}>{t("collections.openReader")}</Text>
                       <Icon name="arrowR" size={15} color={colors.accent} sw={1.8} />
                     </Pressable>
                   </View>

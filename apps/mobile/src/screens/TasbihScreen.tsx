@@ -11,11 +11,13 @@ import {
 import { mobileTasbihStore as store } from "../tasbih-store";
 import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
+import { useI18n } from "../i18n/I18nProvider";
 
 const DEFAULT: TasbihRecord = { phraseId: "subhanallah", phrases: {} };
 
 export function TasbihScreen() {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [state, setState] = useState<TasbihRecord>(DEFAULT);
@@ -88,29 +90,29 @@ export function TasbihScreen() {
             transform="rotate(-90 130 130)"
           />
         </Svg>
-        <Pressable style={styles.dial} onPress={tap} accessibilityRole="button" accessibilityLabel="Count">
+        <Pressable style={styles.dial} onPress={tap} accessibilityRole="button" accessibilityLabel={t("tasbih.count")}>
           <Text style={styles.dialAr}>{phrase.arabic}</Text>
           <Text style={[styles.dialCount, justLapped && styles.dialCountLapped]}>
             {justLapped ? progress.target : view.count}
           </Text>
-          <Text style={styles.dialTarget}>of {progress.target}</Text>
+          <Text style={[styles.dialTarget, { writingDirection: dir }]}>{t("tasbih.of", { count: progress.target })}</Text>
         </Pressable>
       </View>
 
       <View style={styles.stats}>
         <View style={styles.stat}>
           <Text style={styles.statValue}>{view.rounds}</Text>
-          <Text style={styles.statLabel}>Cycles complete</Text>
+          <Text style={[styles.statLabel, { writingDirection: dir }]}>{t("tasbih.cyclesComplete")}</Text>
         </View>
         <View style={styles.stat}>
           <Text style={styles.statValue}>{view.total}</Text>
-          <Text style={styles.statLabel}>Total today</Text>
+          <Text style={[styles.statLabel, { writingDirection: dir }]}>{t("tasbih.totalToday")}</Text>
         </View>
       </View>
 
       <View style={styles.controls}>
         <View style={styles.pickerRow}>
-          <Text style={styles.label}>Target</Text>
+          <Text style={[styles.label, { writingDirection: dir }]}>{t("tasbih.target")}</Text>
           <View style={styles.chips}>
             {TASBIH_TARGETS.map((t) => (
               <Pressable
@@ -140,7 +142,7 @@ export function TasbihScreen() {
             })
           }
         >
-          <Text style={styles.resetText}>Reset</Text>
+          <Text style={[styles.resetText, { writingDirection: dir }]}>{t("tasbih.reset")}</Text>
         </Pressable>
       </View>
     </ScrollView>

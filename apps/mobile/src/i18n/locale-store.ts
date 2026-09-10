@@ -8,6 +8,10 @@ import { DEFAULT_LOCALE, type Locale, isLocale } from "./config";
 
 export async function readLocale(): Promise<Locale> {
   const saved = await getString(KEYS.locale);
+  // Urdu was the previous starter RTL locale. Arabic is now the supported RTL
+  // UI language; safely fall back to English rather than leaving startup with
+  // an invalid locale.
+  if (saved === "ur") return DEFAULT_LOCALE;
   return saved && isLocale(saved) ? saved : DEFAULT_LOCALE;
 }
 

@@ -23,6 +23,7 @@ import { DEFAULT_EDITION, TRANSLIT_EDITION } from "../types";
 import { fetchSurahWordTranslit } from "../word-translit";
 import { fetchSurahIndopak } from "../indopak";
 import type { ReadStackParamList } from "../navigation/types";
+import { useT } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<ReadStackParamList, "JuzReader">;
 
@@ -59,6 +60,7 @@ function juzRange(juz: number): { sura: number; from: number; toExclusive: numbe
 }
 
 export function JuzReaderScreen({ route }: Props) {
+  const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const {
@@ -180,15 +182,15 @@ export function JuzReaderScreen({ route }: Props) {
 
   if (error) {
     const message = error.isNetworkError
-      ? "Couldn’t load this juzʾ. Check your connection."
+      ? t("juzReader.loadNetworkError")
       : error.status && error.status >= 500
-        ? "The server is starting up. Try again in a moment."
-        : "Couldn’t load this juzʾ.";
+        ? t("juzReader.loadStartingError")
+        : t("juzReader.loadError");
     return (
       <View style={styles.center}>
         <Text style={styles.error}>{message}</Text>
         <Pressable style={styles.chip} onPress={retry}>
-          <Text style={styles.chipText}>Try again</Text>
+          <Text style={styles.chipText}>{t("juzReader.tryAgain")}</Text>
         </Pressable>
       </View>
     );
@@ -211,17 +213,17 @@ export function JuzReaderScreen({ route }: Props) {
           }
         >
           <Text style={styles.audioPlayText}>
-            {!audio.playingKey ? "▶ Play juzʾ" : audio.buffering ? "■ Loading…" : "■ Stop"}
+            {!audio.playingKey ? t("juzReader.play") : audio.buffering ? t("juzReader.loading") : t("juzReader.stop")}
           </Text>
         </Pressable>
         <Text style={styles.audioStatus} numberOfLines={1}>
-          {audio.playingKey ? `Playing ${audio.playingKey}` : reciter.name}
+          {audio.playingKey ? t("juzReader.playing", { ayah: audio.playingKey }) : reciter.name}
         </Text>
         <Pressable
           style={[styles.loopBtn, audio.loop && styles.loopBtnOn]}
           onPress={() => audio.setLoop(!audio.loop)}
         >
-          <Text style={[styles.loopText, audio.loop && styles.loopTextOn]}>🔁 Loop</Text>
+          <Text style={[styles.loopText, audio.loop && styles.loopTextOn]}>{t("juzReader.loop")}</Text>
         </Pressable>
         <DownloadButton audio={audio} surahs={listSurahs} colors={colors} />
       </View>

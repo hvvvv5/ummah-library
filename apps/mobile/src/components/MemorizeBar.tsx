@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "../Type";
 import { Icon } from "@ummahlibrary/ui";
 import { useTheme, type Palette } from "../theme";
+import { useI18n } from "../i18n/I18nProvider";
 
 /**
  * Recite — hide & peek controls (#134) for the mobile readers. Collapsed it
@@ -29,13 +30,14 @@ export function MemorizeBar({
   onToggleTr: () => void;
 }) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   if (!on) {
     return (
-      <Pressable style={styles.pill} onPress={onToggle} accessibilityLabel="Recite mode">
+      <Pressable style={styles.pill} onPress={onToggle} accessibilityLabel={t("reader.reciteMode")}>
         <Icon name="eye" size={15} color={colors.accent} />
-        <Text style={styles.pillText}>Recite</Text>
+        <Text style={[styles.pillText, { writingDirection: dir }]}>{t("reader.recite")}</Text>
       </Pressable>
     );
   }
@@ -46,24 +48,24 @@ export function MemorizeBar({
         <Pressable
           style={[styles.pill, styles.pillOn]}
           onPress={onToggle}
-          accessibilityLabel="Exit recite mode"
+          accessibilityLabel={t("reader.exitReciteMode")}
         >
           <Icon name="eye" size={15} color={colors.ink} />
-          <Text style={[styles.pillText, styles.pillTextOn]}>Recite</Text>
+          <Text style={[styles.pillText, { writingDirection: dir }, styles.pillTextOn]}>{t("reader.recite")}</Text>
         </Pressable>
         <Pressable
           style={[styles.ctl, hideTr && styles.ctlOn]}
           onPress={onToggleTr}
-          accessibilityLabel="Hide translation"
+          accessibilityLabel={t("reader.hideTranslation")}
         >
-          <Text style={[styles.ctlText, hideTr && styles.ctlTextOn]}>Translation</Text>
+          <Text style={[styles.ctlText, { writingDirection: dir }, hideTr && styles.ctlTextOn]}>{t("reader.translation")}</Text>
         </Pressable>
       </View>
       <View style={styles.row}>
-        <Ctl styles={styles} label="Peek word" onPress={onPeekWord} />
-        <Ctl styles={styles} label="Reveal āyah" onPress={onRevealAyah} />
-        <Ctl styles={styles} label="Show all" onPress={onShowAll} />
-        <Ctl styles={styles} label="Hide all" onPress={onHideAll} />
+        <Ctl styles={styles} label={t("reader.peekWord")} dir={dir} onPress={onPeekWord} />
+        <Ctl styles={styles} label={t("reader.revealAyah")} dir={dir} onPress={onRevealAyah} />
+        <Ctl styles={styles} label={t("reader.showAll")} dir={dir} onPress={onShowAll} />
+        <Ctl styles={styles} label={t("reader.hideAll")} dir={dir} onPress={onHideAll} />
       </View>
     </View>
   );
@@ -72,15 +74,17 @@ export function MemorizeBar({
 function Ctl({
   styles,
   label,
+  dir,
   onPress,
 }: {
   styles: ReturnType<typeof makeStyles>;
   label: string;
+  dir: "ltr" | "rtl";
   onPress: () => void;
 }) {
   return (
     <Pressable style={styles.ctl} onPress={onPress}>
-      <Text style={styles.ctlText}>{label}</Text>
+      <Text style={[styles.ctlText, { writingDirection: dir }]}>{label}</Text>
     </Pressable>
   );
 }

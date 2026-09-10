@@ -9,6 +9,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text } from "../Type";
 import { Icon } from "@ummahlibrary/ui";
 import type { Palette } from "../theme";
 import type { SurahAudio } from "../audio/useSurahAudio";
+import { useT } from "../i18n/I18nProvider";
 
 export function DownloadButton({
   audio,
@@ -20,6 +21,7 @@ export function DownloadButton({
   colors: Palette;
 }) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const t = useT();
   if (surahs.length === 0) return null;
 
   const allSaved = surahs.every((s) => audio.savedSurahs.has(s));
@@ -27,10 +29,10 @@ export function DownloadButton({
     ? Math.round((audio.downloadProgress.done / Math.max(1, audio.downloadProgress.total)) * 100)
     : 0;
   const label = audio.downloadProgress
-    ? `Downloading ${pct}%`
+    ? t("audio.downloading", { percent: pct })
     : allSaved
-      ? "Saved for offline listening"
-      : "Download for offline listening";
+      ? t("audio.savedOffline")
+      : t("audio.downloadOffline");
 
   return (
     <Pressable

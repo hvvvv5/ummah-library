@@ -16,6 +16,7 @@ import {
 } from "@ummahlibrary/core";
 import { useTheme, type Palette } from "../theme";
 import { DEFAULT_EDITION } from "../types";
+import { useI18n } from "../i18n/I18nProvider";
 
 /**
  * "Manage translations" sheet: search + language-grouped checklist + a "My
@@ -36,6 +37,7 @@ export function TranslationManager({
   onClose: () => void;
 }) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [query, setQuery] = useState("");
 
@@ -59,20 +61,17 @@ export function TranslationManager({
       <View style={styles.overlay}>
         <View style={styles.panel}>
           <View style={styles.head}>
-            <Text style={styles.title}>Translations</Text>
+            <Text style={[styles.title, { writingDirection: dir }]}>{t("reader.translations")}</Text>
             <Pressable onPress={onClose} hitSlop={10}>
               <Text style={styles.close}>✕</Text>
             </Pressable>
           </View>
 
-          <Text style={styles.hint}>
-            The Verse tab shows every translation you add here at once; the Translations reading
-            view shows one at a time — pick which from its own selector.
-          </Text>
+          <Text style={[styles.hint, { writingDirection: dir }]}>{t("translations.hint")}</Text>
 
           <TextInput
-            style={styles.search}
-            placeholder="Search by name, author, or language…"
+            style={[styles.search, { writingDirection: dir, textAlign: dir === "rtl" ? "right" : "left" }]}
+            placeholder={t("translations.searchPlaceholder")}
             placeholderTextColor={colors.muted}
             value={query}
             onChangeText={setQuery}
@@ -82,7 +81,7 @@ export function TranslationManager({
           <ScrollView keyboardShouldPersistTaps="handled">
             {chosen.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.groupTitle}>My Translations</Text>
+                <Text style={[styles.groupTitle, { writingDirection: dir }]}>{t("reader.myTranslations")}</Text>
                 <View style={styles.pillRow}>
                   {chosen.map((e) => (
                     <Pressable key={e.id} style={styles.pill} onPress={() => toggle(e.id)}>
@@ -94,7 +93,7 @@ export function TranslationManager({
             )}
 
             {groups.length === 0 && (
-              <Text style={styles.muted}>No translations match “{query}”.</Text>
+              <Text style={[styles.muted, { writingDirection: dir }]}>{t("translations.noMatches", { query })}</Text>
             )}
             {groups.map((group) => (
               <View key={group.code} style={styles.section}>

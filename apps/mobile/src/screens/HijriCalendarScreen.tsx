@@ -16,6 +16,7 @@ import { weekdayOfGregorian } from "../utils";
 import { SunnahFastReminderToggle } from "../components/SunnahFastReminderToggle";
 import { expoNotifier } from "../notifier";
 import { readEventReminders, setEventReminder } from "../islamic-event-reminders";
+import { useI18n } from "../i18n/I18nProvider";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 const ADJUST_OPTIONS = [-2, -1, 0, 1, 2] as const;
@@ -44,6 +45,7 @@ function todayGregorian() {
 
 export function HijriCalendarScreen() {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [adjust, setAdjust] = useState(0);
@@ -128,14 +130,14 @@ export function HijriCalendarScreen() {
   return (
     <ScrollView contentContainerStyle={styles.screen}>
       <View style={styles.nav}>
-        <Pressable style={styles.navBtn} onPress={() => step(-1)} accessibilityLabel="Previous month">
+        <Pressable style={styles.navBtn} onPress={() => step(-1)} accessibilityLabel={t("hijri.previousMonth")}>
           <Text style={styles.navArrow}>‹</Text>
         </Pressable>
         <View style={styles.navTitle}>
           <Text style={styles.monthEn}>{month.name} {view.year} AH</Text>
           <Text style={styles.monthAr}>{month.arabic}</Text>
         </View>
-        <Pressable style={styles.navBtn} onPress={() => step(1)} accessibilityLabel="Next month">
+        <Pressable style={styles.navBtn} onPress={() => step(1)} accessibilityLabel={t("hijri.nextMonth")}>
           <Text style={styles.navArrow}>›</Text>
         </Pressable>
       </View>
@@ -162,17 +164,17 @@ export function HijriCalendarScreen() {
       <View style={styles.legend}>
         <View style={styles.legendItem}>
           <View style={styles.legendDot} />
-          <Text style={styles.legendText}>Observance</Text>
+          <Text style={[styles.legendText, { writingDirection: dir }]}>{t("hijri.observance")}</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={styles.legendToday} />
-          <Text style={styles.legendText}>Today</Text>
+          <Text style={[styles.legendText, { writingDirection: dir }]}>{t("hijri.today")}</Text>
         </View>
       </View>
 
-      <Text style={styles.sectionLabel}>Observances this month</Text>
+      <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("hijri.observances")}</Text>
       {monthly.length === 0 ? (
-        <Text style={styles.note}>No major observances fall in this month.</Text>
+        <Text style={[styles.note, { writingDirection: dir }]}>{t("hijri.noObservances")}</Text>
       ) : (
         <View style={styles.monthList}>
           {monthly.map((m) => {
@@ -206,7 +208,7 @@ export function HijriCalendarScreen() {
 
       <View style={styles.adjustSection}>
         <Text style={styles.adjustLabel}>
-          Date adjustment ({adjust > 0 ? `+${adjust}` : adjust} day{Math.abs(adjust) === 1 ? "" : "s"})
+          {t("hijri.dateAdjustment", { value: adjust > 0 ? `+${adjust}` : adjust })}
         </Text>
         <View style={styles.chips}>
           {ADJUST_OPTIONS.map((n) => (
@@ -228,7 +230,7 @@ export function HijriCalendarScreen() {
       </View>
 
       <View style={styles.sunnahSection}>
-        <Text style={styles.sectionLabel}>Sunnah fasting</Text>
+        <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("hijri.sunnahFasting")}</Text>
         <SunnahFastReminderToggle adjust={adjust} />
       </View>
     </ScrollView>

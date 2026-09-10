@@ -19,17 +19,17 @@ import {
   readSyncSecret,
 } from "../lib/sync/sync-settings";
 import { resetSyncRuntime, syncIfEnabled } from "../lib/sync/sync-runtime";
+import { useT } from "../i18n/I18nProvider";
 
-const SERVER_DOWN = "Couldn’t reach the sync server — your data is safe on this device.";
-
-function outcomeMessage(outcome: SyncOutcome | null): string {
-  if (!outcome) return "Sync is off.";
-  if (outcome.applied === 0) return "Up to date — nothing new from your other devices.";
+function outcomeMessage(outcome: SyncOutcome | null, t: ReturnType<typeof useT>): string {
+  if (!outcome) return t("sync.off");
+  if (outcome.applied === 0) return t("sync.upToDate");
   const n = outcome.applied;
-  return `Synced — ${n} item${n === 1 ? "" : "s"} brought in from your other devices.`;
+  return n === 1 ? t("sync.syncedOne", { count: n }) : t("sync.syncedMany", { count: n });
 }
 
 export function SyncSection() {
+  const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -57,9 +57,9 @@ export function SyncSection() {
     setEnabled(true);
     setSecret(s);
     try {
-      setStatus({ ok: true, message: outcomeMessage(await syncIfEnabled()) });
+      setStatus({ ok: true, message: outcomeMessage(await syncIfEnabled(), t) });
     } catch {
-      setStatus({ ok: false, message: SERVER_DOWN });
+      setStatus({ ok: false, message: t("sync.serverDown") });
     } finally {
       setBusy(false);
       setPhrase("");
@@ -70,9 +70,9 @@ export function SyncSection() {
     setBusy(true);
     setStatus(null);
     try {
-      setStatus({ ok: true, message: outcomeMessage(await syncIfEnabled()) });
+      setStatus({ ok: true, message: outcomeMessage(await syncIfEnabled(), t) });
     } catch {
-      setStatus({ ok: false, message: SERVER_DOWN });
+      setStatus({ ok: false, message: t("sync.serverDown") });
     } finally {
       setBusy(false);
     }
@@ -80,12 +80,11 @@ export function SyncSection() {
 
   function turnOff() {
     Alert.alert(
-      "Turn off sync?",
-      "This removes the recovery phrase from this device. Your local data stays untouched.",
+      t("sync.turnOffTitle"), t("sync.turnOffBody"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("sync.cancel"), style: "cancel" },
         {
-          text: "Turn off",
+          text: t("sync.turnOff"),
           style: "destructive",
           onPress: () => {
             void disableSync();
@@ -106,17 +105,15 @@ export function SyncSection() {
 
   return (
     <View>
-      <Text style={styles.sectionLabel}>Sync across devices</Text>
+      <Text style={styles.sectionLabel}>{t("sync.title")}</Text>
       <Text style={styles.intro}>
-        Keep your bookmarks, reading position and preferences in step across your devices —
-        end-to-end encrypted, with no account. Off by default; the app works fully offline without
-        it.
+        {t("sync.intro")}
       </Text>
 
       {enabled ? (
         <View style={styles.card}>
           <Text style={styles.cardBody}>
-            Your data syncs across every device that uses your recovery phrase.
+            {t("sync.enabledBody")}
           </Text>
           <View style={styles.btnRow}>
             <Pressable
@@ -127,11 +124,11 @@ export function SyncSection() {
               {busy ? (
                 <ActivityIndicator color={colors.ink} size="small" />
               ) : (
-                <Text style={styles.primaryText}>Sync now</Text>
+                <Text style={styles.primaryText}>{t("sync.syncNow")}</Text>
               )}
             </Pressable>
             <Pressable style={styles.secondaryBtn} onPress={() => setReveal((r) => !r)}>
-              <Text style={styles.secondaryText}>{reveal ? "Hide phrase" : "Show phrase"}</Text>
+              <Text style={styles.secondaryText}>{reveal ? t("sync.hidePhrase") : t("sync.showPhrase")}</Text>
             </Pressable>
           </View>
           {reveal && secret && (
@@ -140,24 +137,23 @@ export function SyncSection() {
                 {secret}
               </Text>
               <Pressable style={styles.copyBtn} onPress={copyPhrase}>
-                <Text style={styles.secondaryText}>Copy</Text>
+                <Text style={styles.secondaryText}>{t("sync.copy")}</Text>
               </Pressable>
             </View>
           )}
           <Pressable style={styles.dangerBtn} onPress={turnOff}>
-            <Text style={styles.dangerText}>Turn off sync</Text>
+            <Text style={styles.dangerText}>{t("sync.turnOff")}</Text>
           </Pressable>
         </View>
       ) : (
         <View style={styles.card}>
           <Text style={styles.cardBody}>
-            Generate a recovery phrase on your first device, then enter the same phrase on each
-            other device to link them. It’s the only key — pick it once and keep it.
+            {t("sync.setupBody")}
           </Text>
           <TextInput
             value={phrase}
             onChangeText={setPhrase}
-            placeholder="Enter or generate a phrase"
+            placeholder={t("sync.placeholder")}
             placeholderTextColor={colors.faint}
             autoCapitalize="characters"
             autoCorrect={false}
@@ -166,7 +162,7 @@ export function SyncSection() {
           />
           <View style={styles.btnRow}>
             <Pressable style={styles.secondaryBtn} onPress={() => setPhrase(generateRecoveryPhrase())}>
-              <Text style={styles.secondaryText}>Generate</Text>
+              <Text style={styles.secondaryText}>{t("sync.generate")}</Text>
             </Pressable>
             <Pressable
               style={[styles.primaryBtn, (!phrase.trim() || busy) && styles.dim]}
@@ -176,7 +172,7 @@ export function SyncSection() {
               {busy ? (
                 <ActivityIndicator color={colors.ink} size="small" />
               ) : (
-                <Text style={styles.primaryText}>Turn on sync</Text>
+                <Text style={styles.primaryText}>{t("sync.turnOn")}</Text>
               )}
             </Pressable>
           </View>
@@ -191,9 +187,7 @@ export function SyncSection() {
 
       <View style={styles.warnCard}>
         <Text style={styles.warnText}>
-          ⚠ Your recovery phrase is the only key to your synced data. We can’t see it or recover it
-          — if you lose it, the data can’t be decrypted. Keep a copy somewhere safe (your exported
-          backup file is a good place).
+          {t("sync.warning")}
         </Text>
       </View>
     </View>

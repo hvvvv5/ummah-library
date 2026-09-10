@@ -6,6 +6,7 @@ import { useTheme } from "../theme";
 import { FONT } from "../fonts";
 import { expoNotifier } from "../notifier";
 import { readSunnahFastReminderOn, setSunnahFastReminderOn } from "../sunnah-fast-reminders";
+import { useT } from "../i18n/I18nProvider";
 
 const GLYPH: Record<UpcomingSunnahFast["kind"], string> = {
   "white-day": "🌕",
@@ -18,10 +19,10 @@ function todayGregorian() {
   return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() };
 }
 
-function countdownLabel(daysUntil: number): string {
-  if (daysUntil === 0) return "Today";
-  if (daysUntil === 1) return "Tomorrow";
-  return `in ${daysUntil} days`;
+function countdownLabel(daysUntil: number, t: ReturnType<typeof useT>): string {
+  if (daysUntil === 0) return t("sunnahReminders.today");
+  if (daysUntil === 1) return t("sunnahReminders.tomorrow");
+  return t("sunnahReminders.inDays", { count: daysUntil });
 }
 
 function gregorianFull(g: { year: number; month: number; day: number }): string {
@@ -41,6 +42,7 @@ function gregorianFull(g: { year: number; month: number; day: number }): string 
  * location: the dates are pure Hijri/weekday arithmetic.
  */
 export function SunnahFastReminderToggle({ adjust = 0 }: { adjust?: number }) {
+  const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [on, setOn] = useState(false);
@@ -78,9 +80,9 @@ export function SunnahFastReminderToggle({ adjust = 0 }: { adjust?: number }) {
         <View style={styles.row}>
           <Icon name="bell" size={17} color={on ? colors.accent : colors.muted} sw={1.8} />
           <View style={styles.text}>
-            <Text style={styles.title}>Sunnah-fast reminders</Text>
+            <Text style={styles.title}>{t("sunnahReminders.title")}</Text>
             <Text style={styles.note}>
-              A nudge the evening before Mondays &amp; Thursdays and the white days (13–15).
+              {t("sunnahReminders.note")}
             </Text>
           </View>
           <Switch
@@ -92,12 +94,12 @@ export function SunnahFastReminderToggle({ adjust = 0 }: { adjust?: number }) {
         </View>
         {on && next && (
           <Text style={styles.nextLine}>
-            Next: {next.name} · {countdownLabel(next.daysUntil)}
+            {t("sunnahReminders.next", { name: next.name, countdown: countdownLabel(next.daysUntil, t) })}
           </Text>
         )}
       </View>
 
-      <Text style={styles.sectionLabel}>Upcoming fasts</Text>
+      <Text style={styles.sectionLabel}>{t("sunnahReminders.upcoming")}</Text>
       <View style={styles.list}>
         {fasts.map((f) => (
           <View
@@ -113,7 +115,7 @@ export function SunnahFastReminderToggle({ adjust = 0 }: { adjust?: number }) {
                 {gregorianFull(f.gregorian)} · {f.note}
               </Text>
             </View>
-            <Text style={styles.countdown}>{countdownLabel(f.daysUntil)}</Text>
+            <Text style={styles.countdown}>{countdownLabel(f.daysUntil, t)}</Text>
           </View>
         ))}
       </View>

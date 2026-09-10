@@ -23,9 +23,9 @@ function formatBytes(bytes: number): string {
 }
 
 /** Arabic script options (ADR 0035). */
-const SCRIPTS: { id: QuranScript; label: string; sub: string }[] = [
-  { id: "uthmani", label: "Uthmani", sub: "Madinah mushaf (default)" },
-  { id: "indopak", label: "IndoPak", sub: "South Asian script" },
+const SCRIPTS: { id: QuranScript; labelKey: "settings.uthmani" | "settings.indopak"; subKey: "settings.uthmaniHint" | "settings.indopakHint" }[] = [
+  { id: "uthmani", labelKey: "settings.uthmani", subKey: "settings.uthmaniHint" },
+  { id: "indopak", labelKey: "settings.indopak", subKey: "settings.indopakHint" },
 ];
 
 export function SettingsScreen() {
@@ -74,18 +74,21 @@ export function SettingsScreen() {
     // the restored values (e.g. theme, reciter) until the app restarts —
     // same caveat web's Data section states explicitly (DataBackup.tsx).
     if (res.message) {
-      setStatus({ ...res, message: res.ok ? `${res.message} Restart the app to see it fully applied.` : res.message });
+      setStatus({
+        ...res,
+        message: res.ok ? t("settings.restartApplied", { message: res.message }) : res.message,
+      });
     }
   };
 
   const onErase = () => {
     Alert.alert(
-      "Erase all data?",
-      "This removes every bookmark, note, prayer log and setting on this device. It can’t be undone. Restart the app afterwards to see the reset fully applied.",
+      t("settings.eraseTitle"),
+      t("settings.eraseBody"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("settings.cancel"), style: "cancel" },
         {
-          text: "Erase",
+          text: t("settings.eraseConfirm"),
           style: "destructive",
           onPress: async () => {
             const n = await clearAllData();
@@ -95,7 +98,10 @@ export function SettingsScreen() {
             // web's "Cleared N items. Reload to start fresh." (DataBackup.tsx).
             setStatus({
               ok: true,
-              message: `Cleared ${n} item${n === 1 ? "" : "s"}. Restart the app to start fresh.`,
+              message: t("settings.cleared", {
+                count: n,
+                itemLabel: t(n === 1 ? "settings.item" : "settings.items"),
+              }),
             });
           },
         },
@@ -113,12 +119,12 @@ export function SettingsScreen() {
 
   function confirmClearCache() {
     Alert.alert(
-      "Clear cached content",
-      "Removes offline copies of surahs, translations, tafsir, and hadith you've opened. They'll be re-downloaded next time you're online.",
+      t("settings.clearTitle"),
+      t("settings.clearBody"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("settings.cancel"), style: "cancel" },
         {
-          text: "Clear",
+          text: t("settings.clearConfirm"),
           style: "destructive",
           onPress: () => void clearCache().then(refreshCacheStats),
         },
@@ -128,9 +134,9 @@ export function SettingsScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.sectionLabel}>Appearance</Text>
+      <Text style={styles.sectionLabel}>{t("settings.appearance")}</Text>
       <View style={styles.card}>
-        <Text style={styles.cardLabel}>Theme</Text>
+        <Text style={styles.cardLabel}>{t("settings.theme")}</Text>
         <View style={styles.swatchRow}>
           {THEMES.map((t) => {
             const on = t.key === themeKey;
@@ -172,10 +178,10 @@ export function SettingsScreen() {
         </View>
       </View>
 
-      <Text style={styles.sectionLabel}>Reading</Text>
+      <Text style={styles.sectionLabel}>{t("settings.reading")}</Text>
       <View style={styles.card}>
         <View style={[styles.row, styles.rowLast]}>
-          <Text style={styles.rowLabel}>Font size</Text>
+          <Text style={styles.rowLabel}>{t("settings.fontSize")}</Text>
           <View style={styles.scale}>
             <Pressable
               style={[styles.scaleBtn, scale <= MIN_SCALE && styles.disabled]}
@@ -196,7 +202,7 @@ export function SettingsScreen() {
         </View>
       </View>
 
-      <Text style={styles.sectionLabel}>Reciter</Text>
+      <Text style={styles.sectionLabel}>{t("settings.reciter")}</Text>
       <View style={styles.card}>
         {RECITERS.map((r, i) => {
           const on = r.id === reciterId;
@@ -218,7 +224,7 @@ export function SettingsScreen() {
         })}
       </View>
 
-      <Text style={styles.sectionLabel}>Arabic script</Text>
+      <Text style={styles.sectionLabel}>{t("settings.script")}</Text>
       <View style={styles.card}>
         {SCRIPTS.map((s, i) => {
           const on = s.id === script;
@@ -232,18 +238,18 @@ export function SettingsScreen() {
                 {on && <View style={styles.radioDot} />}
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.pickText, on && styles.pickTextOn]}>{s.label}</Text>
-                <Text style={styles.pickSub}>{s.sub}</Text>
+                  <Text style={[styles.pickText, on && styles.pickTextOn]}>{t(s.labelKey)}</Text>
+                  <Text style={styles.pickSub}>{t(s.subKey)}</Text>
               </View>
             </Pressable>
           );
         })}
       </View>
 
-      <Text style={styles.sectionLabel}>Tafsir edition</Text>
+      <Text style={styles.sectionLabel}>{t("settings.tafsir")}</Text>
       <View style={styles.card}>
         {tafsirs.length === 0 ? (
-          <Text style={styles.muted}>Loading tafsir editions…</Text>
+          <Text style={styles.muted}>{t("settings.loadingTafsir")}</Text>
         ) : (
           tafsirs.map((t, i) => {
             const on = t.id === tafsirId;
@@ -266,21 +272,24 @@ export function SettingsScreen() {
         )}
       </View>
 
-      <Text style={styles.sectionLabel}>Data</Text>
+      <Text style={styles.sectionLabel}>{t("settings.data")}</Text>
       <View style={styles.card}>
         <View style={[styles.row, styles.rowLast]}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.rowLabel}>Cached content</Text>
+            <Text style={styles.rowLabel}>{t("settings.cached")}</Text>
             <Text style={styles.pickSub}>
-              Surahs, translations, tafsir, and hadith you've opened stay readable offline.
+              {t("settings.cacheHint")}
             </Text>
           </View>
           <Text style={styles.value}>
             {cacheStats === null
               ? "…"
               : cacheStats.entryCount === 0
-                ? "Empty"
-                : `${formatBytes(cacheStats.sizeBytes)} · ${cacheStats.entryCount}`}
+                ? t("settings.empty")
+                : t("settings.cacheStats", {
+                    size: formatBytes(cacheStats.sizeBytes),
+                    count: cacheStats.entryCount,
+                  })}
           </Text>
         </View>
         <Pressable
@@ -288,13 +297,12 @@ export function SettingsScreen() {
           disabled={!cacheStats || cacheStats.entryCount === 0}
           onPress={confirmClearCache}
         >
-          <Text style={styles.clearBtnText}>Clear cached content</Text>
+          <Text style={styles.clearBtnText}>{t("settings.clearCache")}</Text>
         </Pressable>
       </View>
 
       <Text style={styles.dataDesc}>
-        Everything stays on this device — no account, no server. Export a backup to move your data
-        to another device or keep it safe; import it to restore.
+        {t("settings.dataHint")}
       </Text>
       <View style={styles.card}>
         <View style={styles.btnRow}>
@@ -303,24 +311,24 @@ export function SettingsScreen() {
             disabled={busy}
             onPress={onExport}
           >
-            <Text style={styles.primaryBtnText}>Export my data</Text>
+            <Text style={styles.primaryBtnText}>{t("settings.export")}</Text>
           </Pressable>
           <Pressable
             style={[styles.secondaryBtn, busy && styles.disabled]}
             disabled={busy}
             onPress={onImport}
           >
-            <Text style={styles.secondaryBtnText}>Import a backup</Text>
+            <Text style={styles.secondaryBtnText}>{t("settings.import")}</Text>
           </Pressable>
           {busy && <ActivityIndicator color={colors.accent} />}
         </View>
 
-        <Text style={styles.onImportLabel}>On import</Text>
+        <Text style={styles.onImportLabel}>{t("settings.onImport")}</Text>
         <View style={styles.pillRow}>
           {(
             [
-              { v: "replace", l: "Replace my data" },
-              { v: "keep-mine", l: "Keep mine on conflict" },
+              { v: "replace", l: t("settings.replace") },
+              { v: "keep-mine", l: t("settings.keepMine") },
             ] as const
           ).map((o) => {
             const on = strategy === o.v;
@@ -337,8 +345,8 @@ export function SettingsScreen() {
         </View>
         <Text style={styles.pillHint}>
           {strategy === "replace"
-            ? "The backup fully restores your data, overwriting what’s here."
-            : "The backup only fills in things you don’t already have."}
+            ? t("settings.replaceHint")
+            : t("settings.keepHint")}
         </Text>
 
         {status && (
@@ -349,17 +357,20 @@ export function SettingsScreen() {
 
         <View style={styles.dataFoot}>
           <Text style={styles.countText}>
-            {count ?? "—"} item{count === 1 ? "" : "s"} on this device
+            {t("settings.itemCount", {
+              count: count ?? "—",
+              itemLabel: t(count === 1 ? "settings.item" : "settings.items"),
+            })}
           </Text>
           <Pressable onPress={onErase} hitSlop={8}>
-            <Text style={styles.eraseText}>Erase all</Text>
+            <Text style={styles.eraseText}>{t("settings.erase")}</Text>
           </Pressable>
         </View>
       </View>
 
       <SyncSection />
 
-      <Text style={styles.sectionLabel}>About</Text>
+      <Text style={styles.sectionLabel}>{t("settings.about")}</Text>
       <Text style={styles.muted}>
         Arabic text: Tanzil (CC-BY 3.0). Translations, tafsir, and hadith via Ummah Library
         datasets and their respective sources. Recitation by {RECITER.name}.

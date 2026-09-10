@@ -35,15 +35,17 @@ import { mobileHaidStore as haidStore } from "../haid-store";
 import { mobileFastingQadaStore as fastingQadaStore } from "../fasting-qada-store";
 import { KEYS, getString } from "../storage";
 import { localISODate } from "../utils";
+import { useI18n } from "../i18n/I18nProvider";
 
-const STATUS_LABEL: Record<PrayerStatus, string> = {
-  none: "Not yet",
-  ontime: "On time",
-  late: "Late",
+const STATUS_LABEL: Record<PrayerStatus, "prayerTracker.notYet" | "prayerTracker.onTime" | "prayerTracker.late"> = {
+  none: "prayerTracker.notYet",
+  ontime: "prayerTracker.onTime",
+  late: "prayerTracker.late",
 };
 
 export function PrayerTrackerScreen() {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const LATE = "#c98a57";
   const statusColor = (s: PrayerStatus) =>
@@ -111,10 +113,10 @@ export function PrayerTrackerScreen() {
   const fastingRemaining = fastingQadaRemaining(fastingQada, fastingOwed);
   const fastingDone = fastingMadeUp(fastingQada, fastingOwed);
   const stats: [string, string][] = [
-    [`${prayedCount(todayLog)}/5`, "Prayed today"],
-    [`${prayerStreakWithPause(log, haid, today)} 🔥`, "Day streak"],
-    [`${onTimeRate(log, today)}%`, "On time (30d)"],
-    [`${longestPrayerStreakWithPause(log, haid)}`, "Best streak"],
+    [`${prayedCount(todayLog)}/5`, t("prayerTracker.prayedToday")],
+    [`${prayerStreakWithPause(log, haid, today)} 🔥`, t("prayerTracker.dayStreak")],
+    [`${onTimeRate(log, today)}%`, t("prayerTracker.onTime30")],
+    [`${longestPrayerStreakWithPause(log, haid)}`, t("prayerTracker.bestStreak")],
   ];
 
   return (
@@ -130,7 +132,7 @@ export function PrayerTrackerScreen() {
         ))}
       </View>
 
-      <Text style={styles.sectionLabel}>Today · tap to log</Text>
+      <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("prayerTracker.today")}</Text>
       <View style={styles.todayRow}>
         {OBLIGATORY_PRAYERS.map((p) => {
           const st = statusFor(todayLog, p);
@@ -155,19 +157,19 @@ export function PrayerTrackerScreen() {
               </View>
               <Text style={styles.prayerName}>{PRAYER_LABELS[p]}</Text>
               <Text style={[styles.prayerStatus, { color: lit ? colors.accent : colors.faint }]}>
-                {STATUS_LABEL[st]}
+                {t(STATUS_LABEL[st])}
               </Text>
             </Pressable>
           );
         })}
       </View>
 
-      <Text style={styles.sectionLabel}>Last 7 days</Text>
+      <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("prayerTracker.lastSeven")}</Text>
       <View style={styles.legendRow}>
-        <Legend color={colors.accent} label="On time" colors={colors} />
-        <Legend color={LATE} label="Late" colors={colors} />
-        <Legend color={colors.border} label="Missed" colors={colors} outline />
-        <Legend color={colors.muted} label="Paused" colors={colors} outline />
+        <Legend color={colors.accent} label={t("prayerTracker.onTime")} colors={colors} />
+        <Legend color={LATE} label={t("prayerTracker.late")} colors={colors} />
+        <Legend color={colors.border} label={t("prayerTracker.missed")} colors={colors} outline />
+        <Legend color={colors.muted} label={t("prayerTracker.paused")} colors={colors} outline />
       </View>
       <View style={styles.grid}>
         {OBLIGATORY_PRAYERS.map((p, pi) => (
@@ -199,11 +201,11 @@ export function PrayerTrackerScreen() {
         ))}
       </View>
 
-      <Text style={styles.sectionLabel}>Cycle pause · ḥayḍ</Text>
+      <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("prayerTracker.cyclePause")}</Text>
       <View style={styles.haidCard}>
         <View style={styles.haidInfo}>
           <Text style={[styles.haidStatus, { color: haidCurrent ? colors.accent : colors.fg }]}>
-            {haidCurrent ? `Paused — day ${haidDays}` : "Tracking active"}
+            {haidCurrent ? `${t("prayerTracker.paused")} — ${haidDays}` : t("prayerTracker.trackingActive")}
           </Text>
           <Text style={styles.haidHint}>
             {haidCurrent
@@ -219,12 +221,12 @@ export function PrayerTrackerScreen() {
           <Text
             style={[styles.haidBtnText, { color: haidCurrent ? colors.fg : colors.accent }]}
           >
-            {haidCurrent ? "End pause" : "Start pause"}
+            {haidCurrent ? t("prayerTracker.endPause") : t("prayerTracker.startPause")}
           </Text>
         </Pressable>
       </View>
 
-      <Text style={styles.sectionLabel}>Make-up prayers · qaḍāʾ ({totalOwed(qada)} owed)</Text>
+      <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("prayerTracker.makeupPrayers", { count: totalOwed(qada) })}</Text>
       <View style={styles.qadaList}>
         {OBLIGATORY_PRAYERS.map((p) => {
           const owed = owedFor(qada, p);
@@ -257,22 +259,22 @@ export function PrayerTrackerScreen() {
       </View>
 
       <Text style={styles.sectionLabel}>
-        Make-up fasts · ṣawm qaḍāʾ ({fastingRemaining} to make up)
+        {t("prayerTracker.makeupFasts", { count: fastingRemaining })}
       </Text>
       {fastingOwed === 0 ? (
         <Text style={styles.fastingHint}>
-          No fasts to make up. Days missed during a ḥayḍ pause in Ramaḍān appear here automatically.
+          {t("prayerTracker.noMakeupFasts")}
         </Text>
       ) : (
         <View style={styles.qadaList}>
           <View style={styles.qadaRow}>
-            <Text style={styles.qadaName}>Ramaḍān fasts</Text>
+            <Text style={styles.qadaName}>{t("prayerTracker.ramadanFasts")}</Text>
             <View style={styles.qadaCtrls}>
               <Pressable
                 style={[styles.step, fastingRemaining === 0 && styles.stepDisabled]}
                 disabled={fastingRemaining === 0}
                 onPress={() => adjustFasting(1, fastingOwed)}
-                accessibilityLabel="Mark one fast made up"
+                accessibilityLabel={t("prayerTracker.markFastMadeUp")}
               >
                 <Text style={styles.stepMark}>−</Text>
               </Pressable>
@@ -283,14 +285,14 @@ export function PrayerTrackerScreen() {
                 style={[styles.step, fastingDone === 0 && styles.stepDisabled]}
                 disabled={fastingDone === 0}
                 onPress={() => adjustFasting(-1, fastingOwed)}
-                accessibilityLabel="Undo one made-up fast"
+                accessibilityLabel={t("prayerTracker.undoFastMadeUp")}
               >
                 <Text style={styles.stepMark}>+</Text>
               </Pressable>
             </View>
           </View>
           <Text style={styles.fastingHint}>
-            {fastingDone} of {fastingOwed} made up. Tap − as you fast each one back.
+            {t("prayerTracker.fastsMadeUp", { done: fastingDone, total: fastingOwed })}
           </Text>
         </View>
       )}

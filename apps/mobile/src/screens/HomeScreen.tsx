@@ -24,10 +24,12 @@ import { readReadingState } from "../reading-goals";
 import { KEYS, getJSON, getString } from "../storage";
 import { fmtCountdown, fmtPrayerTime, localISODate } from "../utils";
 import type { HomeStackParamList } from "../navigation/types";
+import { useT } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<HomeStackParamList, "Today">;
 
 export function HomeScreen({ navigation }: Props) {
+  const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
@@ -100,8 +102,8 @@ export function HomeScreen({ navigation }: Props) {
     navigation.getParent()?.navigate("Tools", { screen } as never);
 
   const quick: { icon: Parameters<typeof Icon>[0]["name"]; label: string; onPress: () => void }[] = [
-    { icon: "book", label: "Read", onPress: () => toRead() },
-    { icon: "headphones", label: "Listen", onPress: () => (last ? toRead({ screen: "SurahReader", params: { surah: last.number } }) : toRead()) },
+    { icon: "book", label: t("home.read"), onPress: () => toRead() },
+    { icon: "headphones", label: t("home.listen"), onPress: () => (last ? toRead({ screen: "SurahReader", params: { surah: last.number } }) : toRead()) },
     { icon: "compass", label: "Qibla", onPress: () => toTools("Qibla") },
   ];
 
@@ -110,7 +112,7 @@ export function HomeScreen({ navigation }: Props) {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Assalāmu ʿalaykum</Text>
-          <Text style={styles.title}>Today</Text>
+          <Text style={styles.title}>{t("home.today")}</Text>
         </View>
         <View style={styles.bell}>
           <Icon name="bell" size={20} color={colors.muted} sw={1.8} />
@@ -127,13 +129,13 @@ export function HomeScreen({ navigation }: Props) {
             <View style={styles.continueWatermark} pointerEvents="none">
               <Khatam size={150} color={colors.accent} sw={1.1} opacity={0.07} />
             </View>
-            <Text style={styles.kicker}>Continue reading</Text>
+            <Text style={styles.kicker}>{t("home.continueReading")}</Text>
             <View style={styles.continueRow}>
               <AyahBadge n={last.number} size={48} />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={styles.continueName}>{last.transliteration}</Text>
                 <Text style={styles.continueSub}>
-                  {last.englishName} · {last.ayahCount} verses
+                  {last.englishName} · {t("home.verses", { count: last.ayahCount })}
                 </Text>
               </View>
               <Text style={styles.continueAr}>{last.name}</Text>
@@ -151,16 +153,16 @@ export function HomeScreen({ navigation }: Props) {
           {nextP ? (
             <>
               <View style={{ flex: 1 }}>
-                <Text style={styles.prayerLabel}>Next prayer · {PRAYER_LABELS[nextP.name]}</Text>
-                <Text style={styles.prayerValue}>in {fmtCountdown(nextP.at, now)}</Text>
+                <Text style={styles.prayerLabel}>{t("home.nextPrayer", { name: PRAYER_LABELS[nextP.name] })}</Text>
+                <Text style={styles.prayerValue}>{t("home.in", { time: fmtCountdown(nextP.at, now) })}</Text>
               </View>
               <Text style={styles.prayerTime}>{fmtPrayerTime(nextP.at, coords)}</Text>
             </>
           ) : (
             <>
               <View style={{ flex: 1 }}>
-                <Text style={styles.prayerLabel}>Prayer times</Text>
-                <Text style={styles.prayerValue}>View today’s ṣalāh times</Text>
+                <Text style={styles.prayerLabel}>{t("home.prayerTimes")}</Text>
+                <Text style={styles.prayerValue}>{t("home.viewPrayerTimes")}</Text>
               </View>
               <Icon name="chevR" size={18} color={colors.faint} sw={1.8} />
             </>
@@ -170,7 +172,7 @@ export function HomeScreen({ navigation }: Props) {
         {/* Verse of the day */}
         <View style={styles.vod}>
           <View style={styles.vodHead}>
-            <Text style={styles.kicker}>Verse of the day</Text>
+            <Text style={styles.kicker}>{t("home.verseOfDay")}</Text>
             <SaveToCollection sura={vod.sura} aya={vod.aya} asIcon />
           </View>
           <Text style={styles.vodAr}>{vod.ar}</Text>

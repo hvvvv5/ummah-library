@@ -5,10 +5,12 @@ import { api, type TafsirMeta } from "../api";
 import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
 import { useSettings } from "../state/SettingsContext";
+import { useI18n } from "../i18n/I18nProvider";
 
 /** Standalone tafsir browser: pick an edition and a surah, read it per āyah. */
 export function TafsirScreen() {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { tafsirId } = useSettings();
 
@@ -50,7 +52,7 @@ export function TafsirScreen() {
   const header = (
     <>
       <Text style={styles.surahTitle}>
-        {meta ? `${meta.transliteration} · ${meta.englishName}` : `Surah ${surah}`}
+        {meta ? `${meta.transliteration} · ${meta.englishName}` : t("tafsir.surahFallback", { number: surah })}
       </Text>
       <Text style={styles.editionName}>{editionName}</Text>
     </>
@@ -59,7 +61,7 @@ export function TafsirScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.controls}>
-        <Text style={styles.label}>Edition</Text>
+        <Text style={[styles.label, { writingDirection: dir }]}>{t("tafsir.edition")}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
           {tafsirs.map((t) => (
             <Pressable
@@ -72,7 +74,7 @@ export function TafsirScreen() {
           ))}
         </ScrollView>
 
-        <Text style={styles.label}>Surah</Text>
+        <Text style={[styles.label, { writingDirection: dir }]}>{t("tafsir.surah")}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
           {Array.from({ length: TOTAL_SURAHS }, (_, i) => i + 1).map((n) => (
             <Pressable
@@ -90,7 +92,7 @@ export function TafsirScreen() {
         <ScrollView contentContainerStyle={styles.body}>
           {header}
           {error ? (
-            <Text style={styles.muted}>Couldn’t load this tafsir. Try another edition.</Text>
+            <Text style={[styles.muted, { writingDirection: dir }]}>{t("tafsir.loadError")}</Text>
           ) : (
             <ActivityIndicator color={colors.accent} style={{ marginTop: 24 }} />
           )}
@@ -106,7 +108,7 @@ export function TafsirScreen() {
           contentContainerStyle={styles.body}
           ListHeaderComponent={<>{header}</>}
           ListEmptyComponent={
-            <Text style={styles.muted}>No tafsir available for this surah in this edition.</Text>
+            <Text style={[styles.muted, { writingDirection: dir }]}>{t("tafsir.empty")}</Text>
           }
           renderItem={({ item: e }) => (
             <View style={styles.entry}>

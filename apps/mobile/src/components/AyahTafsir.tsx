@@ -4,6 +4,7 @@ import { api } from "../api";
 import { TAFSIRS } from "../plugins";
 import { useTheme, type Palette } from "../theme";
 import { useSettings } from "../state/SettingsContext";
+import { useT } from "../i18n/I18nProvider";
 
 // One shared fetch per (tafsir, surah); every āyah/column toggle reuses it.
 const cache = new Map<string, Promise<Map<number, string>>>();
@@ -35,6 +36,7 @@ interface Loaded {
  * falls back to the single chosen tafsir — the original one-edition behaviour.
  */
 export function AyahTafsir({ sura, aya }: { sura: number; aya: number }) {
+  const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { tafsirId, tafsirCompare, tafsirs, setTafsirCompare } = useSettings();
@@ -80,8 +82,9 @@ export function AyahTafsir({ sura, aya }: { sura: number; aya: number }) {
     setTafsirCompare(allTafsirs.filter((t) => set.has(t.id)).map((t) => t.id));
   }
 
-  const header =
-    editions.length > 1 ? `Tafsir · comparing ${editions.length}` : `Tafsir · ${nameOf(editions[0] ?? "")}`;
+  const header = editions.length > 1
+    ? t("ayahTafsir.comparing", { count: editions.length })
+    : t("ayahTafsir.header", { name: nameOf(editions[0] ?? "") });
 
   return (
     <View style={styles.wrap}>
@@ -115,7 +118,7 @@ export function AyahTafsir({ sura, aya }: { sura: number; aya: number }) {
               <View key={id} style={editions.length > 1 ? styles.section : undefined}>
                 {editions.length > 1 && <Text style={styles.sectionName}>{nameOf(id)}</Text>}
                 {(!d || d.state === "loading") && <ActivityIndicator color={colors.accent} />}
-                {d?.state === "empty" && <Text style={styles.muted}>No tafsir for this āyah.</Text>}
+                {d?.state === "empty" && <Text style={styles.muted}>{t("ayahTafsir.empty")}</Text>}
                 {d?.state === "ready" &&
                   d.text
                     .split("\n")

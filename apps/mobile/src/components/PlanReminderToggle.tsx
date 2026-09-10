@@ -7,6 +7,7 @@ import { useTheme } from "../theme";
 import { FONT } from "../fonts";
 import { expoNotifier } from "../notifier";
 import { readPlanReminderPref, setPlanReminderPref } from "../plan-reminders";
+import { useT } from "../i18n/I18nProvider";
 
 /** `"20:00"` → `"8:00 PM"`. */
 function label(time: string): string {
@@ -33,6 +34,7 @@ function dateToTime(d: Date): string {
  * pick when.
  */
 export function PlanReminderToggle() {
+  const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [on, setOn] = useState(false);
@@ -75,8 +77,8 @@ export function PlanReminderToggle() {
       <View style={styles.row}>
         <Icon name="bell" size={17} color={on ? colors.accent : colors.muted} sw={1.8} />
         <View style={styles.text}>
-          <Text style={styles.title}>Daily reminder</Text>
-          <Text style={styles.note}>A gentle daily nudge for today's portion.</Text>
+          <Text style={styles.title}>{t("planReminder.title")}</Text>
+          <Text style={styles.note}>{t("planReminder.note")}</Text>
         </View>
         <Switch
           value={on}
@@ -88,7 +90,7 @@ export function PlanReminderToggle() {
 
       {on && (
         <Pressable style={styles.timeRow} onPress={() => setShowPicker(true)} accessibilityRole="button">
-          <Text style={styles.timeLabel}>Remind me at</Text>
+          <Text style={styles.timeLabel}>{t("planReminder.at")}</Text>
           <View style={styles.timePill}>
             <Icon name="clock" size={13} color={colors.accent} sw={1.8} />
             <Text style={styles.timeValue}>{label(time)}</Text>

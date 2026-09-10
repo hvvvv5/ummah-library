@@ -5,7 +5,7 @@
  */
 /** Every UI locale the app can render in. Adding one extends this union, which
  *  forces its message catalogue to be complete (see `messages.ts`). */
-export type Locale = "en" | "ur";
+export type Locale = "en" | "ar";
 
 export interface LocaleMeta {
   code: Locale;
@@ -16,7 +16,7 @@ export interface LocaleMeta {
 
 export const LOCALES: readonly LocaleMeta[] = [
   { code: "en", label: "English", dir: "ltr" },
-  { code: "ur", label: "اردو", dir: "rtl" },
+  { code: "ar", label: "العربية", dir: "rtl" },
 ];
 
 export const DEFAULT_LOCALE: Locale = "en";

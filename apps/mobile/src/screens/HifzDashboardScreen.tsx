@@ -18,6 +18,7 @@ import { useLibrary } from "../state/LibraryContext";
 import { AyahBadge } from "../components/AyahBadge";
 import { relativeDue, surahProgressMap, type SurahProgress } from "../hifz";
 import type { HifzStackParamList } from "../navigation/types";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<HifzStackParamList, "HifzDashboard">;
 
@@ -29,6 +30,7 @@ interface QueueItem extends SurahProgress {
 
 export function HifzDashboardScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { ready, allRecords, trackedCount, dueRecords, streak, reviewLog } = useLibrary();
@@ -100,30 +102,27 @@ export function HifzDashboardScreen({ navigation }: Props) {
 
   return (
     <ScrollView contentContainerStyle={[styles.screen, { paddingTop: insets.top + 18 }]}>
-      <Text style={styles.h1}>Hifz</Text>
-      <Text style={styles.subtitle}>Memorize the Quran with spaced repetition</Text>
+      <Text style={[styles.h1, { writingDirection: dir }]}>{t("nav.hifz")}</Text>
+      <Text style={[styles.subtitle, { writingDirection: dir }]}>{t("hifz.subtitle")}</Text>
 
       {!ready ? (
         <ActivityIndicator color={colors.accent} style={{ marginTop: 40 }} />
       ) : trackedCount === 0 ? (
         <View style={styles.empty}>
           <Khatam size={72} color={colors.accent} sw={1.2} opacity={0.5} />
-          <Text style={styles.emptyTitle}>Begin your ḥifẓ journey</Text>
-          <Text style={styles.emptyBody}>
-            Open a surah and tap <Text style={styles.accentInline}>＋ Hifz</Text> on any āyah — it
-            will appear here on a spaced-repetition schedule tuned to your recall.
-          </Text>
+          <Text style={[styles.emptyTitle, { writingDirection: dir }]}>{t("hifz.emptyTitle")}</Text>
+          <Text style={[styles.emptyBody, { writingDirection: dir }]}>{t("hifz.emptyBody")}</Text>
         </View>
       ) : (
         <>
           {/* Stats */}
           <View style={styles.statsRow}>
-            <Stat value={memorizedPct} label="Memorized" colors={colors} />
-            <Stat value={String(dueCount)} label="Due today" colors={colors} />
+            <Stat value={memorizedPct} label={t("hifz.memorized")} colors={colors} dir={dir} />
+            <Stat value={String(dueCount)} label={t("hifz.dueToday")} colors={colors} dir={dir} />
           </View>
           <View style={styles.statsRow}>
-            <Stat value={streak.count > 0 ? `${streak.count} 🔥` : "—"} label="Day streak" colors={colors} />
-            <Stat value={String(trackedCount)} label="Āyāt tracked" colors={colors} />
+            <Stat value={streak.count > 0 ? `${streak.count} 🔥` : "—"} label={t("hifz.dayStreak")} colors={colors} dir={dir} />
+            <Stat value={String(trackedCount)} label={t("hifz.ayahsTracked")} colors={colors} dir={dir} />
           </View>
 
           {/* CTA */}
@@ -131,18 +130,18 @@ export function HifzDashboardScreen({ navigation }: Props) {
             <View style={styles.cta}>
               <View style={styles.ctaText}>
                 <Text style={styles.ctaTitle}>
-                  {dueCount} {dueCount === 1 ? "āyah" : "āyāt"} ready for review
+                  {t("hifz.readyReview", { count: dueCount })}
                 </Text>
-                <Text style={styles.ctaSub}>Keep your streak alive — a few minutes is all it takes.</Text>
+                <Text style={[styles.ctaSub, { writingDirection: dir }]}>{t("hifz.keepStreak")}</Text>
               </View>
               <Pressable style={styles.ctaBtn} onPress={() => navigation.navigate("HifzReview")}>
-                <Text style={styles.ctaBtnText}>▶ Start review</Text>
+                <Text style={[styles.ctaBtnText, { writingDirection: dir }]}>{t("hifz.startReview")}</Text>
               </Pressable>
             </View>
           )}
 
           {/* Queue */}
-          <Text style={styles.sectionLabel}>Review queue</Text>
+          <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("hifz.reviewQueue")}</Text>
           {surahs === null ? (
             <ActivityIndicator color={colors.accent} style={{ marginTop: 12 }} />
           ) : (
@@ -177,7 +176,7 @@ export function HifzDashboardScreen({ navigation }: Props) {
           )}
 
           {/* Review activity heatmap */}
-          <Text style={styles.sectionLabel}>Review activity</Text>
+          <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("hifz.reviewActivity")}</Text>
           <View style={styles.heatCard}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.heatGrid}>
@@ -192,14 +191,14 @@ export function HifzDashboardScreen({ navigation }: Props) {
             </ScrollView>
             <View style={styles.heatFooter}>
               <Text style={styles.heatCaption}>
-                Longest streak: {longestStreak} day{longestStreak === 1 ? "" : "s"}
+                {t("hifz.longestStreak", { count: longestStreak })}
               </Text>
               <View style={styles.legendRow}>
-                <Text style={styles.legendText}>Less</Text>
+                <Text style={[styles.legendText, { writingDirection: dir }]}>{t("hifz.less")}</Text>
                 {[0, 1, 2, 3, 4].map((l) => (
                   <View key={l} style={[styles.heatCell, { backgroundColor: levelColors[l] }]} />
                 ))}
-                <Text style={styles.legendText}>More</Text>
+                <Text style={[styles.legendText, { writingDirection: dir }]}>{t("hifz.more")}</Text>
               </View>
             </View>
           </View>
@@ -207,7 +206,7 @@ export function HifzDashboardScreen({ navigation }: Props) {
           {/* Needs attention — weakest surahs */}
           {weak.length > 0 && (
             <>
-              <Text style={styles.sectionLabel}>Needs attention</Text>
+              <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("hifz.needsAttention")}</Text>
               <View style={{ gap: 10 }}>
                 {weak.map((item) => (
                   <View key={item.surahNumber} style={styles.queueRow}>
@@ -236,12 +235,12 @@ export function HifzDashboardScreen({ navigation }: Props) {
   );
 }
 
-function Stat({ value, label, colors }: { value: string; label: string; colors: Palette }) {
+function Stat({ value, label, colors, dir }: { value: string; label: string; colors: Palette; dir: "ltr" | "rtl" }) {
   const styles = makeStyles(colors);
   return (
     <View style={styles.stat}>
       <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={[styles.statLabel, { writingDirection: dir }]}>{label}</Text>
     </View>
   );
 }

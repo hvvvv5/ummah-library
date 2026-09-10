@@ -7,6 +7,7 @@ import { api } from "../api";
 import { KEYS, getJSON, setJSON } from "../storage";
 import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Status = "idle" | "locating" | "loading" | "ready" | "denied" | "error";
 
@@ -19,6 +20,7 @@ const RADIUS_OPTIONS = [
 
 export function MosqueFinderScreen() {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [coords, setCoords] = useState<Coordinates | null>(null);
@@ -81,11 +83,10 @@ export function MosqueFinderScreen() {
       {!coords && status !== "locating" && (
         <View style={styles.cta}>
           <Text style={styles.ctaText}>
-            Find mosques near you. Your location stays on this device — it's only sent to
-            OpenStreetMap to search.
+            {t("mosques.intro")}
           </Text>
           <Pressable style={styles.ctaBtn} onPress={locate}>
-            <Text style={styles.ctaBtnText}>📍 Use my location</Text>
+            <Text style={[styles.ctaBtnText, { writingDirection: dir }]}>{t("qibla.useLocation")}</Text>
           </Pressable>
         </View>
       )}
@@ -93,24 +94,24 @@ export function MosqueFinderScreen() {
       {status === "locating" && (
         <View style={styles.center}>
           <ActivityIndicator color={colors.accent} />
-          <Text style={styles.muted}>Getting your location…</Text>
+          <Text style={[styles.muted, { writingDirection: dir }]}>{t("qibla.gettingLocation")}</Text>
         </View>
       )}
 
       {status === "denied" && (
         <View style={styles.cta}>
-          <Text style={styles.ctaText}>Location permission was denied. Enable it in Settings.</Text>
+          <Text style={[styles.ctaText, { writingDirection: dir }]}>{t("qibla.permissionDenied")}</Text>
           <Pressable style={styles.chip} onPress={locate}>
-            <Text style={styles.chipText}>Try again</Text>
+            <Text style={[styles.chipText, { writingDirection: dir }]}>{t("qibla.tryAgain")}</Text>
           </Pressable>
         </View>
       )}
 
       {status === "error" && (
         <View style={styles.cta}>
-          <Text style={styles.ctaText}>Couldn't load nearby mosques. Check your connection.</Text>
+          <Text style={[styles.ctaText, { writingDirection: dir }]}>{t("mosques.loadError")}</Text>
           <Pressable style={styles.chip} onPress={() => coords && fetchNearby(coords, radius)}>
-            <Text style={styles.chipText}>Try again</Text>
+            <Text style={[styles.chipText, { writingDirection: dir }]}>{t("qibla.tryAgain")}</Text>
           </Pressable>
         </View>
       )}
@@ -130,7 +131,7 @@ export function MosqueFinderScreen() {
               </Pressable>
             ))}
             <Pressable style={styles.chip} onPress={locate}>
-              <Text style={styles.chipText}>📍 Update</Text>
+              <Text style={[styles.chipText, { writingDirection: dir }]}>{t("mosques.update")}</Text>
             </Pressable>
           </View>
 
@@ -141,7 +142,7 @@ export function MosqueFinderScreen() {
           )}
 
           {status === "ready" && places.length === 0 && (
-            <Text style={styles.muted}>No mosques found within {radiusLabel}. Try a wider radius.</Text>
+            <Text style={[styles.muted, { writingDirection: dir }]}>{t("mosques.empty", { radius: radiusLabel })}</Text>
           )}
 
           {status === "ready" && places.length > 0 && (
@@ -160,9 +161,9 @@ export function MosqueFinderScreen() {
                     style={styles.directionsBtn}
                     onPress={() => void Linking.openURL(directionsUrl(p.coordinates))}
                     accessibilityRole="button"
-                    accessibilityLabel={`Directions to ${p.name}`}
+                    accessibilityLabel={t("mosques.directionsTo", { name: p.name })}
                   >
-                    <Text style={styles.directionsBtnText}>Directions</Text>
+                    <Text style={[styles.directionsBtnText, { writingDirection: dir }]}>{t("mosques.directions")}</Text>
                   </Pressable>
                 </View>
               ))}

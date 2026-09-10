@@ -5,11 +5,13 @@ import { api } from "../api";
 import { HADITH_COLLECTIONS } from "../plugins";
 import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
+import { useI18n } from "../i18n/I18nProvider";
 
 const GRADE_GOOD = "#5bbf8a";
 
 export function HadithScreen() {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [collectionId, setCollectionId] = useState<string>(HADITH_COLLECTIONS[0].id);
   const [section, setSection] = useState(1);
@@ -61,14 +63,14 @@ export function HadithScreen() {
             disabled={section <= 1}
             onPress={() => setSection((s) => Math.max(1, s - 1))}
           >
-            <Text style={styles.chipText}>‹ Prev</Text>
+            <Text style={[styles.chipText, { writingDirection: dir }]}>{t("hadith.previous")}</Text>
           </Pressable>
           <Text style={styles.sectionLabel} numberOfLines={1}>
-            Book {section}
+            {t("hadith.book", { number: section })}
             {data?.name ? ` · ${data.name}` : ""}
           </Text>
           <Pressable style={styles.chip} onPress={() => setSection((s) => s + 1)}>
-            <Text style={styles.chipText}>Next ›</Text>
+            <Text style={[styles.chipText, { writingDirection: dir }]}>{t("hadith.next")}</Text>
           </Pressable>
         </View>
       </View>
@@ -77,7 +79,7 @@ export function HadithScreen() {
         {status === "loading" && <ActivityIndicator color={colors.accent} style={styles.spinner} />}
         {status === "error" && (
           <Text style={styles.muted}>
-            Couldn’t load this book. You may have reached the end of the collection.
+            {t("hadith.loadError")}
           </Text>
         )}
         {status === "ready" &&

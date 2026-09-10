@@ -6,6 +6,7 @@ import { FONT } from "../fonts";
 import { expoNotifier } from "../notifier";
 import { mobilePrayerSettingsStore } from "../prayer-settings-store";
 import { readAdhkarReminderOn, setAdhkarReminderOn } from "../adhkar-reminders";
+import { useI18n } from "../i18n/I18nProvider";
 
 /**
  * Opt-in reminder for morning/evening adhkar (#71), timed off the reader's prayer
@@ -13,6 +14,7 @@ import { readAdhkarReminderOn, setAdhkarReminderOn } from "../adhkar-reminders";
  */
 export function AdhkarReminderToggle() {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [on, setOn] = useState(false);
   const [hasCoords, setHasCoords] = useState(true);
@@ -44,8 +46,8 @@ export function AdhkarReminderToggle() {
       <View style={styles.row}>
         <Icon name="bell" size={17} color={on ? colors.accent : colors.muted} sw={1.8} />
         <View style={styles.text}>
-          <Text style={styles.title}>Reminders</Text>
-          <Text style={styles.note}>Morning &amp; evening adhkar, timed off your prayer times.</Text>
+          <Text style={[styles.title, { writingDirection: dir }]}>{t("adhkar.reminders")}</Text>
+          <Text style={[styles.note, { writingDirection: dir }]}>{t("adhkar.reminderNote")}</Text>
         </View>
         <Switch
           value={on}
@@ -55,7 +57,7 @@ export function AdhkarReminderToggle() {
         />
       </View>
       {on && !hasCoords && (
-        <Text style={styles.hint}>Set your location on Prayer times so reminders know when Fajr and ʿAṣr are.</Text>
+        <Text style={[styles.hint, { writingDirection: dir }]}>{t("adhkar.reminderHint")}</Text>
       )}
     </View>
   );

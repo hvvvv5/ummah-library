@@ -4,25 +4,28 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Khatam } from "@ummahlibrary/ui";
 import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
+import { useI18n } from "../i18n/I18nProvider";
+import type { MessageKey } from "../i18n/messages";
 
-const SLIDES = [
+const SLIDES: { titleKey: MessageKey; bodyKey: MessageKey }[] = [
   {
-    title: "The Qur'ān,\nbeautifully open",
-    body: "Read, listen and reflect — with translation, tafsīr and word-by-word recitation, free and ad-free forever.",
+    titleKey: "onboarding.slide1Title",
+    bodyKey: "onboarding.slide1Body",
   },
   {
-    title: "Memorize with\nconfidence",
-    body: "Spaced-repetition Hifz, a daily reading goal and a khatma planner keep your journey on track.",
+    titleKey: "onboarding.slide2Title",
+    bodyKey: "onboarding.slide2Body",
   },
   {
-    title: "Your faith\ncompanion",
-    body: "Prayer times, qibla, adhkār, the 99 Names and more — all local-first, with no account needed.",
+    titleKey: "onboarding.slide3Title",
+    bodyKey: "onboarding.slide3Body",
   },
 ];
 
 /** First-run intro. Shown until the user finishes; `onDone` persists the flag. */
 export function OnboardingScreen({ onDone }: { onDone: () => void }) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [i, setI] = useState(0);
   const slide = SLIDES[i]!;
@@ -37,8 +40,8 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
             <Khatam size={104} color={colors.accentHi} sw={1.4} opacity={0.5} />
           </View>
         </View>
-        <Text style={styles.title}>{slide.title}</Text>
-        <Text style={styles.body}>{slide.body}</Text>
+        <Text style={[styles.title, { writingDirection: dir }]}>{t(slide.titleKey)}</Text>
+        <Text style={[styles.body, { writingDirection: dir }]}>{t(slide.bodyKey)}</Text>
       </View>
 
       <View style={styles.footer}>
@@ -48,10 +51,10 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
           ))}
         </View>
         <Pressable style={styles.btn} onPress={() => (last ? onDone() : setI(i + 1))}>
-          <Text style={styles.btnText}>{last ? "Get started" : "Continue"}</Text>
+          <Text style={[styles.btnText, { writingDirection: dir }]}>{last ? t("onboarding.getStarted") : t("onboarding.continue")}</Text>
         </Pressable>
         <Pressable onPress={onDone} hitSlop={8}>
-          <Text style={styles.skip}>{last ? " " : "Skip"}</Text>
+          <Text style={[styles.skip, { writingDirection: dir }]}>{last ? " " : t("onboarding.skip")}</Text>
         </Pressable>
       </View>
     </SafeAreaView>

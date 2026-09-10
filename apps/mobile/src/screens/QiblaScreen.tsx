@@ -5,6 +5,7 @@ import { type Coordinates, compassPoint, qiblaDirection } from "@ummahlibrary/co
 import { KEYS, getJSON, setJSON } from "../storage";
 import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Status = "idle" | "locating" | "ready" | "denied" | "error";
 
@@ -16,6 +17,7 @@ function angularGap(a: number, b: number): number {
 
 export function QiblaScreen() {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [coords, setCoords] = useState<Coordinates | null>(null);
@@ -89,10 +91,10 @@ export function QiblaScreen() {
       {!coords && status !== "locating" && (
         <View style={styles.cta}>
           <Text style={styles.ctaText}>
-            Find the direction of the Kaaba from where you are. Your location stays on this device.
+            {t("qibla.intro")}
           </Text>
           <Pressable style={styles.ctaBtn} onPress={locate}>
-            <Text style={styles.ctaBtnText}>📍 Use my location</Text>
+            <Text style={[styles.ctaBtnText, { writingDirection: dir }]}>{t("qibla.useLocation")}</Text>
           </Pressable>
         </View>
       )}
@@ -100,22 +102,22 @@ export function QiblaScreen() {
       {status === "locating" && (
         <View style={styles.center}>
           <ActivityIndicator color={colors.accent} />
-          <Text style={styles.muted}>Getting your location…</Text>
+          <Text style={[styles.muted, { writingDirection: dir }]}>{t("qibla.gettingLocation")}</Text>
         </View>
       )}
 
       {status === "denied" && (
         <View style={styles.cta}>
-          <Text style={styles.ctaText}>Location permission was denied. Enable it in Settings.</Text>
+          <Text style={[styles.ctaText, { writingDirection: dir }]}>{t("qibla.permissionDenied")}</Text>
           <Pressable style={styles.chip} onPress={locate}>
-            <Text style={styles.chipText}>Try again</Text>
+            <Text style={[styles.chipText, { writingDirection: dir }]}>{t("qibla.tryAgain")}</Text>
           </Pressable>
         </View>
       )}
 
       {status === "error" && (
         <Text style={[styles.muted, { padding: 20 }]}>
-          Couldn't get your location. Check your settings.
+          {t("qibla.locationError")}
         </Text>
       )}
 
@@ -143,15 +145,15 @@ export function QiblaScreen() {
             </Text>
             <Text style={styles.degSub}>
               {heading === null
-                ? "Bearing is measured clockwise from true North."
+                ? t("qibla.bearingInfo")
                 : aligned
-                  ? "You're facing the qibla 🕋"
-                  : "Turn until the 🕋 points straight up. Hold device flat."}
+                  ? t("qibla.facing")
+                  : t("qibla.turn")}
             </Text>
           </View>
 
           <Pressable style={styles.chip} onPress={locate}>
-            <Text style={styles.chipText}>Update location</Text>
+            <Text style={[styles.chipText, { writingDirection: dir }]}>{t("qibla.updateLocation")}</Text>
           </Pressable>
         </View>
       )}

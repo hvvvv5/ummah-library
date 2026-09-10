@@ -19,6 +19,7 @@ import { surahProgressMap } from "../hifz";
 import { KEYS, getJSON, isObjectRecord } from "../storage";
 import { mobileAchievementsStore as achievementsStore } from "../achievements-store";
 import { localISODate } from "../utils";
+import { useT } from "../i18n/I18nProvider";
 
 /**
  * "Your journey" — a progress dashboard derived entirely from the local-first
@@ -26,6 +27,7 @@ import { localISODate } from "../utils";
  * collections). No account: honest for a local-first app (ADR 0006).
  */
 export function ProfileScreen() {
+  const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { allRecords, trackedCount, streak, collections } = useLibrary();
@@ -57,12 +59,12 @@ export function ProfileScreen() {
   const bestStreak = Math.max(streak.count, prayer.streak, prayer.best, reading.streak);
 
   const stats: [string, string][] = [
-    [`${streak.count} 🔥`, "Hifz streak"],
-    [String(trackedCount), "Āyāt memorized"],
-    [String(surahsStarted), "Surahs started"],
-    [`${prayer.streak}`, "Prayer streak"],
-    [`${names}/99`, "Names learned"],
-    [String(saved), "Saved verses"],
+    [`${streak.count} 🔥`, t("profile.hifzStreak")],
+    [String(trackedCount), t("profile.ayahsMemorized")],
+    [String(surahsStarted), t("profile.surahsStarted")],
+    [`${prayer.streak}`, t("profile.prayerStreak")],
+    [`${names}/99`, t("profile.namesLearned")],
+    [String(saved), t("profile.savedVerses")],
   ];
 
   const badgeStats: BadgeStats = {
@@ -86,8 +88,8 @@ export function ProfileScreen() {
         const first = fresh[0];
         setToast(
           fresh.length === 1 && first
-            ? `🎉 Unlocked: ${first.name}`
-            : `🎉 ${fresh.length} new badges unlocked!`,
+            ? t("profile.unlockedOne", { name: first.name })
+            : t("profile.unlockedMany", { count: fresh.length }),
         );
         void achievementsStore.write(unlockedIds(badgeStats));
       }
@@ -114,8 +116,8 @@ export function ProfileScreen() {
           <Khatam size={34} color={colors.ink} sw={2} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.name}>Your journey</Text>
-          <Text style={styles.sub}>Local-first · saved on this device</Text>
+          <Text style={styles.name}>{t("profile.title")}</Text>
+          <Text style={styles.sub}>{t("profile.subtitle")}</Text>
         </View>
       </View>
 
@@ -129,7 +131,7 @@ export function ProfileScreen() {
       </View>
 
       <Text style={styles.sectionLabel}>
-        Achievements · {earned}/{badges.length}
+        {t("profile.achievements", { earned, total: badges.length })}
       </Text>
       <View style={styles.badgeGrid}>
         {badges.map(({ badge, unlocked }) => (
@@ -139,7 +141,7 @@ export function ProfileScreen() {
             </View>
             <Text style={styles.badgeName}>{badge.name}</Text>
             <Text style={[styles.badgeStatus, unlocked && styles.badgeStatusOn]}>
-              {unlocked ? "Unlocked" : "Locked"}
+              {unlocked ? t("profile.unlocked") : t("profile.locked")}
             </Text>
           </View>
         ))}

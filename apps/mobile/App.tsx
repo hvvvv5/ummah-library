@@ -12,7 +12,7 @@ import {
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ThemeProvider, useTheme } from "./src/theme";
-import { I18nProvider } from "./src/i18n/I18nProvider";
+import { I18nProvider, useI18n } from "./src/i18n/I18nProvider";
 import { SettingsProvider } from "./src/state/SettingsContext";
 import { LibraryProvider } from "./src/state/LibraryContext";
 import { RootTabs } from "./src/navigation/RootTabs";
@@ -92,6 +92,7 @@ const linking: LinkingOptions<RootStackParamList> = {
 
 function NavRoot() {
   const { mode, colors } = useTheme();
+  const { dir } = useI18n();
   const base = mode === "dark" ? DarkTheme : DefaultTheme;
   const navTheme: Theme = {
     ...base,
@@ -105,25 +106,27 @@ function NavRoot() {
     },
   };
   return (
-    <NavigationContainer
-      theme={navTheme}
-      linking={linking}
+    <View style={{ flex: 1, direction: dir }}>
+      <NavigationContainer
+        theme={navTheme}
+        linking={linking}
       // On a cold/direct web navigation, linking resolution is async (one paint
       // cycle even though getInitialURL is synchronous) and NavigationContainer
       // renders only this fallback until it resolves — default to a themed
       // placeholder instead of a blank white flash.
       fallback={<View style={{ flex: 1, backgroundColor: colors.bg }} />}
-    >
-      <StatusBar style={mode === "dark" ? "light" : "dark"} />
-      <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        <RootStack.Screen name="Tabs" component={RootTabs} />
-        <RootStack.Screen
-          name="NotFound"
-          component={NotFoundScreen}
-          options={{ headerShown: true, title: "Not found" }}
-        />
-      </RootStack.Navigator>
-    </NavigationContainer>
+      >
+        <StatusBar style={mode === "dark" ? "light" : "dark"} />
+        <RootStack.Navigator screenOptions={{ headerShown: false }}>
+          <RootStack.Screen name="Tabs" component={RootTabs} />
+          <RootStack.Screen
+            name="NotFound"
+            component={NotFoundScreen}
+            options={{ headerShown: true, title: "Not found" }}
+          />
+        </RootStack.Navigator>
+      </NavigationContainer>
+    </View>
   );
 }
 

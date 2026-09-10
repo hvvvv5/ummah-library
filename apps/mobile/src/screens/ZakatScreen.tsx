@@ -9,6 +9,7 @@ import { Khatam } from "@ummahlibrary/ui";
 import { KEYS, getJSON, isObjectRecord, setJSON } from "../storage";
 import { FONT } from "../fonts";
 import { useTheme, type Palette } from "../theme";
+import { useI18n } from "../i18n/I18nProvider";
 
 interface ZakatState {
   currency: string;
@@ -52,6 +53,7 @@ function sanitizeCurrency(s: string): string {
 
 export function ZakatScreen() {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [state, setState] = useState<ZakatState>(DEFAULT);
@@ -120,18 +122,18 @@ export function ZakatScreen() {
           <View style={styles.heroWatermark} pointerEvents="none">
             <Khatam size={150} color={colors.accent} sw={1.1} opacity={0.08} />
           </View>
-          <Text style={styles.heroLabel}>Zakat due (2.5%)</Text>
+          <Text style={[styles.heroLabel, { writingDirection: dir }]}>{t("zakat.due")}</Text>
           <Text style={styles.heroValue}>{havePrices ? money(result.zakatDue) : "—"}</Text>
           <Text style={styles.heroNote}>
             {!havePrices
-              ? "Enter the current gold and silver prices to set the niṣāb."
+              ? t("zakat.needPrices")
               : result.meetsNisab
                 ? `Net wealth ${money(result.netWealth)} is above the ${state.nisabBasis} niṣāb.`
                 : `Net wealth ${money(result.netWealth)} is below the ${state.nisabBasis} niṣāb — no zakat due.`}
           </Text>
           <View style={styles.heroDivider} />
-          <SummaryItem label="Total assets" value={money(result.totalAssets)} colors={colors} />
-          <SummaryItem label="Net wealth" value={money(result.netWealth)} colors={colors} strong />
+          <SummaryItem label={t("zakat.totalAssets")} value={money(result.totalAssets)} colors={colors} />
+          <SummaryItem label={t("zakat.netWealth")} value={money(result.netWealth)} colors={colors} strong />
           <SummaryItem
             label={`Niṣāb (${state.nisabBasis})`}
             value={havePrices ? money(result.nisab) : "—"}
@@ -146,8 +148,8 @@ export function ZakatScreen() {
         </Text>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Niṣāb prices</Text>
-          <Row label="Currency">
+          <Text style={[styles.sectionTitle, { writingDirection: dir }]}>{t("zakat.prices")}</Text>
+          <Row label={t("zakat.currency")}>
             <TextInput
               style={styles.input}
               value={state.currency}
@@ -155,7 +157,7 @@ export function ZakatScreen() {
               maxLength={4}
             />
           </Row>
-          <Row label="Gold per gram">
+          <Row label={t("zakat.goldPerGram")}>
             <TextInput
               style={styles.input}
               value={state.goldPricePerGram}
@@ -165,7 +167,7 @@ export function ZakatScreen() {
               placeholderTextColor={colors.muted}
             />
           </Row>
-          <Row label="Silver per gram">
+          <Row label={t("zakat.silverPerGram")}>
             <TextInput
               style={styles.input}
               value={state.silverPricePerGram}
@@ -176,7 +178,7 @@ export function ZakatScreen() {
             />
           </Row>
           <View style={styles.basisRow}>
-            <Text style={styles.label}>Threshold basis</Text>
+            <Text style={[styles.label, { writingDirection: dir }]}>{t("zakat.thresholdBasis")}</Text>
             <View style={styles.chips}>
               {(["silver", "gold"] as NisabBasis[]).map((b) => (
                 <Pressable
@@ -185,7 +187,7 @@ export function ZakatScreen() {
                   onPress={() => update({ nisabBasis: b })}
                 >
                   <Text style={[styles.chipText, b === state.nisabBasis && styles.chipTextOn]}>
-                    {b === "silver" ? "Silver (lower)" : "Gold (higher)"}
+                    {b === "silver" ? t("zakat.silverLower") : t("zakat.goldHigher")}
                   </Text>
                 </Pressable>
               ))}
@@ -194,7 +196,7 @@ export function ZakatScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Zakatable assets</Text>
+          <Text style={[styles.sectionTitle, { writingDirection: dir }]}>{t("zakat.assets")}</Text>
           {ZAKAT_ASSET_CATEGORIES.map((c) => (
             <Row key={c.id} label={c.label} hint={c.hint}>
               <TextInput
@@ -210,8 +212,8 @@ export function ZakatScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Deductions</Text>
-          <Row label="Liabilities" hint="Immediate debts and bills due now">
+          <Text style={[styles.sectionTitle, { writingDirection: dir }]}>{t("zakat.deductions")}</Text>
+          <Row label={t("zakat.liabilities")} hint="Immediate debts and bills due now">
             <TextInput
               style={styles.input}
               value={state.liabilities}
@@ -224,9 +226,9 @@ export function ZakatScreen() {
         </View>
 
         <Pressable style={styles.resetBtn} onPress={reset}>
-          <Text style={styles.resetText}>Reset amounts</Text>
+          <Text style={[styles.resetText, { writingDirection: dir }]}>{t("zakat.reset")}</Text>
         </Pressable>
-        <Text style={styles.foot}>Calculated on your device — nothing you enter leaves this app.</Text>
+        <Text style={[styles.foot, { writingDirection: dir }]}>{t("zakat.deviceOnly")}</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );

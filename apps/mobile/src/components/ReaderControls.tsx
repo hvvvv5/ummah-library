@@ -2,11 +2,12 @@ import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "../Type";
 import { useTheme, type Palette } from "../theme";
 import { MAX_SCALE, MIN_SCALE, type ReadingMode } from "../types";
+import { useI18n } from "../i18n/I18nProvider";
 
-const MODES: { mode: ReadingMode; label: string }[] = [
-  { mode: "translation", label: "Verse" },
-  { mode: "reading", label: "Reading" },
-  { mode: "reading-tr", label: "Translations" },
+const MODES: { mode: ReadingMode; labelKey: "reader.verse" | "reader.reading" | "reader.translations" }[] = [
+  { mode: "translation", labelKey: "reader.verse" },
+  { mode: "reading", labelKey: "reader.reading" },
+  { mode: "reading-tr", labelKey: "reader.translations" },
 ];
 
 /** Reading-mode segmented control + font scale + Manage translations. */
@@ -36,18 +37,19 @@ export function ReaderControls({
   onManage: () => void;
 }) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <View style={styles.wrap}>
       <View style={styles.segment}>
-        {MODES.map(({ mode: m, label }) => (
+        {MODES.map(({ mode: m, labelKey }) => (
           <Pressable
             key={m}
             style={[styles.segItem, m === mode && styles.segItemOn]}
             onPress={() => onMode(m)}
           >
-            <Text style={[styles.segText, m === mode && styles.segTextOn]}>{label}</Text>
+            <Text style={[styles.segText, { writingDirection: dir }, m === mode && styles.segTextOn]}>{t(labelKey)}</Text>
           </Pressable>
         ))}
       </View>
@@ -74,19 +76,19 @@ export function ReaderControls({
             onPress={() => onTransliteration(!transliteration)}
             accessibilityRole="switch"
             accessibilityState={{ checked: transliteration }}
-            accessibilityLabel="Transliteration"
+            accessibilityLabel={t("reader.transliteration")}
           >
-            <Text style={[styles.toggleText, transliteration && styles.toggleTextOn]}>Aa Line</Text>
+            <Text style={[styles.toggleText, { writingDirection: dir }, transliteration && styles.toggleTextOn]}>{t("reader.line")}</Text>
           </Pressable>
           <Pressable
             style={[styles.toggle, wordTransliteration && styles.toggleOn]}
             onPress={() => onWordTransliteration(!wordTransliteration)}
             accessibilityRole="switch"
             accessibilityState={{ checked: wordTransliteration }}
-            accessibilityLabel="Word transliteration"
+            accessibilityLabel={t("reader.wordTransliteration")}
           >
             <Text style={[styles.toggleText, wordTransliteration && styles.toggleTextOn]}>
-              Aa Word
+              {t("reader.word")}
             </Text>
           </Pressable>
           <Pressable
@@ -94,9 +96,9 @@ export function ReaderControls({
             onPress={() => onTapToHear(!tapToHear)}
             accessibilityRole="switch"
             accessibilityState={{ checked: tapToHear }}
-            accessibilityLabel="Tap a word to hear"
+            accessibilityLabel={t("reader.tapWordToHear")}
           >
-            <Text style={[styles.toggleText, tapToHear && styles.toggleTextOn]}>🔊 Word</Text>
+            <Text style={[styles.toggleText, { writingDirection: dir }, tapToHear && styles.toggleTextOn]}>{t("reader.wordAudio")}</Text>
           </Pressable>
           <Pressable style={styles.manage} onPress={onManage}>
             <Text style={styles.manageText}>⚙</Text>

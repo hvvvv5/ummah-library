@@ -6,8 +6,10 @@ import { api } from "../api";
 import { KEYS, getJSON, isObjectRecord, setJSON } from "../storage";
 import { FONT } from "../fonts";
 import { useTheme, type Palette } from "../theme";
+import { useT } from "../i18n/I18nProvider";
 
 export function NamesScreen() {
+  const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -58,7 +60,7 @@ export function NamesScreen() {
   if (error) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>Could not load names. Check your connection.</Text>
+        <Text style={styles.errorText}>{t("names.loadError")}</Text>
       </View>
     );
   }
@@ -69,14 +71,14 @@ export function NamesScreen() {
   return (
     <ScrollView contentContainerStyle={styles.screen}>
       <Text style={styles.h1}>The 99 Names</Text>
-      <Text style={styles.sub}>Al-Asmāʾ al-Ḥusná · {count} of {names.length} learned</Text>
+      <Text style={styles.sub}>Al-Asmāʾ al-Ḥusná · {t("names.progress", { count, total: names.length })}</Text>
 
       {featured && (
         <View style={styles.featured}>
           <View style={styles.featuredWatermark} pointerEvents="none">
             <Khatam size={170} color={colors.accent} sw={1} opacity={0.07} />
           </View>
-          <Text style={styles.featuredKicker}>{featured.number} OF {names.length}</Text>
+          <Text style={styles.featuredKicker}>{t("names.featuredCount", { number: featured.number, total: names.length })}</Text>
           <Text style={styles.featuredAr}>{featured.arabic}</Text>
           <Text style={styles.featuredTr}>{featured.transliteration}</Text>
           <Text style={styles.featuredMeaning}>{featured.meaning}</Text>

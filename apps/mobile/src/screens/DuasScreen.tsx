@@ -4,9 +4,11 @@ import { Khatam } from "@ummahlibrary/ui";
 import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
 import { DUAS, DUA_CATEGORIES, duaOfToday } from "@ummahlibrary/core";
+import { useI18n } from "../i18n/I18nProvider";
 
 export function DuasScreen() {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const featured = duaOfToday();
 
@@ -17,7 +19,7 @@ export function DuasScreen() {
         <View style={styles.featuredWatermark} pointerEvents="none">
           <Khatam size={140} color={colors.accent} sw={1.1} opacity={0.06} />
         </View>
-        <Text style={styles.featuredKicker}>Duʿā of the day</Text>
+        <Text style={[styles.featuredKicker, { writingDirection: dir }]}>{t("duas.featured")}</Text>
         <Text style={styles.featuredAr}>{featured.ar}</Text>
         <Text style={styles.featuredEn}>“{featured.en}”</Text>
         <Text style={styles.featuredRef}>{featured.ref}</Text>

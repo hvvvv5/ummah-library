@@ -9,6 +9,7 @@ import {
 import { Icon } from "@ummahlibrary/ui";
 import { useTheme, type Palette } from "../theme";
 import { useLibrary, newCollectionId } from "../state/LibraryContext";
+import { useI18n } from "../i18n/I18nProvider";
 
 /**
  * Per-ayah "Save" affordance: toggles the ayah into one or more bookmark
@@ -25,6 +26,7 @@ export function SaveToCollection({
   asIcon?: boolean;
 }) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { collections, updateCollections } = useLibrary();
   const [open, setOpen] = useState(false);
@@ -49,23 +51,23 @@ export function SaveToCollection({
   return (
     <>
       {asIcon ? (
-        <Pressable onPress={() => setOpen(true)} hitSlop={8} accessibilityLabel="Save āyah">
+        <Pressable onPress={() => setOpen(true)} hitSlop={8} accessibilityLabel={t("collections.saveAyah")}>
           <Icon name="bookmark" size={18} color={saved ? colors.accent : colors.faint} sw={1.8} />
         </Pressable>
       ) : (
         <Pressable style={[styles.btn, saved && styles.btnOn]} onPress={() => setOpen(true)}>
-          <Text style={[styles.btnText, saved && styles.btnTextOn]}>{saved ? "★ Saved" : "☆ Save"}</Text>
+          <Text style={[styles.btnText, { writingDirection: dir }, saved && styles.btnTextOn]}>{saved ? t("collections.saved") : t("collections.save")}</Text>
         </Pressable>
       )}
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.title}>Save āyah {sura}:{aya}</Text>
+            <Text style={[styles.title, { writingDirection: dir }]}>{t("collections.saveTitle", { sura, ayah: aya })}</Text>
 
             <ScrollView style={{ maxHeight: 280 }} keyboardShouldPersistTaps="handled">
               {collections.length === 0 ? (
-                <Text style={styles.muted}>No collections yet — create one below.</Text>
+                <Text style={[styles.muted, { writingDirection: dir }]}>{t("collections.noCollections")}</Text>
               ) : (
                 collections.map((c) => {
                   const on = isInCollection(c, ref);
@@ -83,7 +85,7 @@ export function SaveToCollection({
             <View style={styles.newRow}>
               <TextInput
                 style={styles.input}
-                placeholder="New collection…"
+                placeholder={t("collections.newPlaceholder")}
                 placeholderTextColor={colors.muted}
                 value={newName}
                 onChangeText={setNewName}
@@ -91,12 +93,12 @@ export function SaveToCollection({
                 returnKeyType="done"
               />
               <Pressable style={styles.addBtn} onPress={addCollection}>
-                <Text style={styles.addText}>Add</Text>
+                <Text style={[styles.addText, { writingDirection: dir }]}>{t("collections.add")}</Text>
               </Pressable>
             </View>
 
             <Pressable style={styles.done} onPress={() => setOpen(false)}>
-              <Text style={styles.doneText}>Done</Text>
+              <Text style={[styles.doneText, { writingDirection: dir }]}>{t("collections.done")}</Text>
             </Pressable>
           </Pressable>
         </Pressable>

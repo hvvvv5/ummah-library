@@ -31,6 +31,7 @@ import {
 import { PlanCompletionCard } from "../components/PlanCompletionCard";
 import { PlanReminderToggle } from "../components/PlanReminderToggle";
 import type { ReadStackParamList } from "../navigation/types";
+import { useT } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<ReadStackParamList, "PlanDetail">;
 type Nav = Props["navigation"];
@@ -43,6 +44,7 @@ function openTarget(navigation: Nav, portion: DayPortion) {
 }
 
 export function PlanDetailScreen({ navigation }: Props) {
+  const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [plan, setPlan] = useState<ActivePlan | null>(null);
@@ -64,7 +66,7 @@ export function PlanDetailScreen({ navigation }: Props) {
   if (!plan) {
     return (
       <View style={[styles.screen, styles.center]}>
-        <Text style={styles.muted}>No active plan.</Text>
+        <Text style={styles.muted}>{t("planDetail.noActive")}</Text>
       </View>
     );
   }
@@ -106,7 +108,7 @@ export function PlanDetailScreen({ navigation }: Props) {
           <View style={styles.ringCenter}>
             <Text style={styles.ringPct}>{pct}%</Text>
             <Text style={styles.ringDay}>
-              Day {day}/{total}
+              {t("planDetail.day", { day, total })}
             </Text>
           </View>
         </View>
@@ -116,11 +118,11 @@ export function PlanDetailScreen({ navigation }: Props) {
             <Text style={styles.name}>{plan.template.name}</Text>
           </View>
           <Text style={styles.endText}>
-            {plan.template.tag} · ends {planEndDate(plan)}
+            {t("planDetail.ends", { tag: plan.template.tag, date: planEndDate(plan) })}
           </Text>
           {paused && (
             <View style={styles.pausedPill}>
-              <Text style={styles.pausedPillText}>⏸ Paused</Text>
+              <Text style={styles.pausedPillText}>{t("planDetail.paused")}</Text>
             </View>
           )}
         </View>
@@ -128,21 +130,21 @@ export function PlanDetailScreen({ navigation }: Props) {
 
       {paused ? (
         <View style={styles.pausedCard}>
-          <Text style={styles.pausedNote}>Paused on {plan.pausedOn}. Your place is held — resume any time.</Text>
+          <Text style={styles.pausedNote}>{t("planDetail.pausedNote", { date: plan.pausedOn ?? "" })}</Text>
           <Pressable style={styles.resumeBtn} onPress={() => void resumePlan().then(refresh)}>
             <Icon name="play" size={14} color={colors.ink} />
-            <Text style={styles.resumeText}>Resume</Text>
+            <Text style={styles.resumeText}>{t("planDetail.resume")}</Text>
           </Pressable>
         </View>
       ) : (
         <View style={styles.todayCard}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.todayKicker}>Today</Text>
+            <Text style={styles.todayKicker}>{t("planDetail.today")}</Text>
             <Text style={styles.todayLabel}>{portion.label}</Text>
           </View>
           <Pressable style={styles.readBtn} onPress={() => openTarget(navigation, portion)}>
             <Icon name="book" size={14} color={colors.ink} sw={1.8} />
-            <Text style={styles.readText}>Read now</Text>
+            <Text style={styles.readText}>{t("planDetail.readNow")}</Text>
           </Pressable>
         </View>
       )}
@@ -151,12 +153,11 @@ export function PlanDetailScreen({ navigation }: Props) {
 
       {!paused && behind < 0 && (
         <Text style={styles.behindNote}>
-          You’re {Math.abs(behind)} {Math.abs(behind) === 1 ? "day" : "days"} behind — re-pace below to catch up
-          gently.
+          {t("planDetail.behind", { count: Math.abs(behind), unit: Math.abs(behind) === 1 ? t("planDetail.daySingular") : t("planDetail.daysPlural") })}
         </Text>
       )}
 
-      <Text style={styles.sectionLabel}>Your days</Text>
+      <Text style={styles.sectionLabel}>{t("planDetail.yourDays")}</Text>
       <View style={styles.heat}>
         {Array.from({ length: total }, (_, i) => i + 1).map((d) => {
           const done = isDayComplete(plan, d);
@@ -176,30 +177,30 @@ export function PlanDetailScreen({ navigation }: Props) {
         })}
       </View>
       <View style={styles.legend}>
-        <Legend styles={styles} colors={colors} kind="done" label="Done" />
-        <Legend styles={styles} colors={colors} kind="missed" label="Missed" />
-        <Legend styles={styles} colors={colors} kind="upcoming" label="Upcoming" />
+        <Legend styles={styles} colors={colors} kind="done" label={t("planDetail.done")} />
+        <Legend styles={styles} colors={colors} kind="missed" label={t("planDetail.missed")} />
+        <Legend styles={styles} colors={colors} kind="upcoming" label={t("planDetail.upcoming")} />
       </View>
 
-      <Text style={styles.sectionLabel}>Manage</Text>
+      <Text style={styles.sectionLabel}>{t("planDetail.manage")}</Text>
       <View style={styles.manage}>
         <Pressable style={styles.pill} onPress={() => void rebalancePlan().then(refresh)}>
           <Icon name="repeat" size={13} color={colors.fg} sw={1.8} />
-          <Text style={styles.pillText}>Re-pace</Text>
+          <Text style={styles.pillText}>{t("planDetail.repace")}</Text>
         </Pressable>
         <Pressable style={styles.pill} onPress={() => void extendPlanBy(7).then(refresh)}>
           <Icon name="plus" size={13} color={colors.fg} sw={2} />
-          <Text style={styles.pillText}>Extend +1wk</Text>
+          <Text style={styles.pillText}>{t("planDetail.extend")}</Text>
         </Pressable>
         {paused ? (
           <Pressable style={styles.pill} onPress={() => void resumePlan().then(refresh)}>
             <Icon name="play" size={13} color={colors.fg} />
-            <Text style={styles.pillText}>Resume</Text>
+            <Text style={styles.pillText}>{t("planDetail.resume")}</Text>
           </Pressable>
         ) : (
           <Pressable style={styles.pill} onPress={() => void pausePlan().then(refresh)}>
             <Icon name="pause" size={13} color={colors.fg} />
-            <Text style={styles.pillText}>Pause</Text>
+            <Text style={styles.pillText}>{t("planDetail.pause")}</Text>
           </Pressable>
         )}
         {confirmAbandon ? (
@@ -208,16 +209,16 @@ export function PlanDetailScreen({ navigation }: Props) {
               style={[styles.pill, styles.pillDanger]}
               onPress={() => void clearPlan().then(() => navigation.goBack())}
             >
-              <Text style={styles.pillText}>Yes, abandon</Text>
+              <Text style={styles.pillText}>{t("planDetail.abandonConfirm")}</Text>
             </Pressable>
             <Pressable style={styles.pill} onPress={() => setConfirmAbandon(false)}>
-              <Text style={styles.pillText}>Keep</Text>
+              <Text style={styles.pillText}>{t("planDetail.keep")}</Text>
             </Pressable>
           </>
         ) : (
           <Pressable style={styles.pill} onPress={() => setConfirmAbandon(true)}>
             <Icon name="close" size={13} color={colors.muted} sw={1.8} />
-            <Text style={styles.pillTextMuted}>Abandon</Text>
+            <Text style={styles.pillTextMuted}>{t("planDetail.abandon")}</Text>
           </Pressable>
         )}
       </View>

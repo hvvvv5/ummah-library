@@ -17,6 +17,7 @@ import { FONT } from "../fonts";
 import { useTheme, type Palette } from "../theme";
 import { fmtCountdown, fmtPrayerTime, localISODate } from "../utils";
 import type { ToolsStackParamList } from "../navigation/types";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<ToolsStackParamList, "Ramadan">;
 
@@ -34,6 +35,7 @@ function todayGreg() {
 
 export function RamadanScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const today = localISODate(new Date());
 
@@ -148,13 +150,13 @@ export function RamadanScreen({ navigation }: Props) {
         </View>
         {iftar ? (
           <>
-            <Text style={styles.heroLabel}>{beforeIftar ? "Time until Ifṭār" : "Ifṭār has begun"}</Text>
+            <Text style={[styles.heroLabel, { writingDirection: dir }]}>{t(beforeIftar ? "ramadan.timeUntilIftar" : "ramadan.iftarBegun")}</Text>
             <Text style={styles.heroCountdown}>
-              {beforeIftar ? fmtCountdown(iftar, now) : "🌙 Iftar mubarak"}
+              {beforeIftar ? fmtCountdown(iftar, now) : t("ramadan.iftarMubarak")}
             </Text>
             <View style={styles.heroBarRow}>
-              <Text style={styles.heroBarLabel}>Suhūr {suhurEnd ? fmtPrayerTime(timings!.fajr, coords) : "—"}</Text>
-              <Text style={styles.heroBarLabel}>Ifṭār {fmtPrayerTime(timings!.maghrib, coords)}</Text>
+              <Text style={styles.heroBarLabel}>{t("ramadan.suhurTime", { time: suhurEnd ? fmtPrayerTime(timings!.fajr, coords) : "—" })}</Text>
+              <Text style={styles.heroBarLabel}>{t("ramadan.iftarTime", { time: fmtPrayerTime(timings!.maghrib, coords) })}</Text>
             </View>
             <View style={styles.heroTrack}>
               <View
@@ -181,13 +183,13 @@ export function RamadanScreen({ navigation }: Props) {
           </>
         ) : (
           <>
-            <Text style={styles.heroLabel}>Ifṭār countdown</Text>
+            <Text style={[styles.heroLabel, { writingDirection: dir }]}>{t("ramadan.iftarCountdown")}</Text>
             <Text style={styles.heroMuted}>
-              {hasCoords ? "Loading today’s times…" : "Set your location to see suhūr & ifṭār times."}
+              {hasCoords ? t("ramadan.loadingTimes") : t("ramadan.setLocationHint")}
             </Text>
             {!hasCoords && (
               <Pressable style={styles.heroBtn} onPress={() => navigation.navigate("PrayerTimes")}>
-                <Text style={styles.heroBtnText}>Set location</Text>
+                <Text style={[styles.heroBtnText, { writingDirection: dir }]}>{t("ramadan.setLocation")}</Text>
               </Pressable>
             )}
           </>
@@ -196,16 +198,16 @@ export function RamadanScreen({ navigation }: Props) {
 
       {/* Stats */}
       <View style={styles.statsRow}>
-        <Stat value={`${fastsKept}/30`} label="Fasts kept" colors={colors} />
-        <Stat value={isRamadan ? `${ramadanDay}/30` : "—"} label="Day of Ramaḍān" colors={colors} />
+        <Stat value={`${fastsKept}/30`} label={t("ramadan.fastsKept")} colors={colors} />
+        <Stat value={isRamadan ? `${ramadanDay}/30` : "—"} label={t("ramadan.dayOf")} colors={colors} />
       </View>
       <View style={styles.statsRow}>
-        <Stat value={`${khatmPct}%`} label="Khatm progress" colors={colors} />
-        <Stat value={`${worshipDone}/4`} label="Today’s worship" colors={colors} />
+        <Stat value={`${khatmPct}%`} label={t("ramadan.khatmProgress")} colors={colors} />
+        <Stat value={`${worshipDone}/4`} label={t("ramadan.todayWorship")} colors={colors} />
       </View>
 
       {/* Fasting grid */}
-      <Text style={styles.sectionLabel}>Fasting · Ramaḍān</Text>
+      <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("ramadan.fasting")}</Text>
       <View style={styles.fastGrid}>
         {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => {
           const kept = Boolean(fasts[d]);
@@ -230,7 +232,7 @@ export function RamadanScreen({ navigation }: Props) {
 
       {/* Today's worship */}
       <View style={styles.worshipHead}>
-        <Text style={styles.sectionLabel}>Today’s worship</Text>
+        <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("ramadan.todayWorship")}</Text>
         <Text style={styles.worshipCount}>{worshipDone}/4</Text>
       </View>
       <View style={styles.worshipGrid}>

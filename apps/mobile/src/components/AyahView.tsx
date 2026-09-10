@@ -9,6 +9,7 @@ import { useLibrary } from "../state/LibraryContext";
 import { AyahBadge } from "./AyahBadge";
 import { SaveToCollection } from "./SaveToCollection";
 import { AyahTafsir } from "./AyahTafsir";
+import { useT } from "../i18n/I18nProvider";
 
 export interface TrLine {
   id: string;
@@ -80,6 +81,7 @@ function AyahViewImpl({
   peekHideTr = false,
   onPeekWord,
 }: Props) {
+  const t = useT();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { isTracked, setHifzCard, removeHifzCard } = useLibrary();
@@ -116,7 +118,7 @@ function AyahViewImpl({
       <View style={styles.head}>
         <AyahBadge n={aya} size={30} />
         <View style={styles.actions}>
-          <Pressable onPress={() => onPlayOne(aya)} hitSlop={8} accessibilityLabel="Play āyah">
+          <Pressable onPress={() => onPlayOne(aya)} hitSlop={8} accessibilityLabel={t("ayahView.play")}>
             <Icon name="play" size={17} color={playing ? colors.accent : colors.faint} />
           </Pressable>
           <Pressable
@@ -124,18 +126,18 @@ function AyahViewImpl({
               memorized ? removeHifzCard(ref) : setHifzCard(ref, createCard(new Date()))
             }
             hitSlop={8}
-            accessibilityLabel={memorized ? "Stop memorizing" : "Memorize āyah"}
+            accessibilityLabel={memorized ? t("ayahView.stopMemorizing") : t("ayahView.memorize")}
           >
             <Icon name="star" size={17} color={memorized ? colors.accent : colors.faint} sw={1.8} />
           </Pressable>
           <SaveToCollection sura={sura} aya={aya} asIcon />
           <View>
-            <Pressable onPress={() => void share()} hitSlop={8} accessibilityLabel="Share āyah">
+            <Pressable onPress={() => void share()} hitSlop={8} accessibilityLabel={t("ayahView.share")}>
               <Icon name="share" size={17} color={colors.faint} sw={1.8} />
             </Pressable>
             {copied && (
               <View style={styles.copiedBubble} pointerEvents="none">
-                <Text style={styles.copiedText}>Copied</Text>
+                <Text style={styles.copiedText}>{t("ayahView.copied")}</Text>
               </View>
             )}
           </View>

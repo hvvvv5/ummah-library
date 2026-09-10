@@ -9,12 +9,14 @@ import { Pressable, StyleSheet, Text, View } from "../Type";
 import { cyclePlaybackRate, type VerseKey } from "@ummahlibrary/core";
 import { useTheme, type Palette } from "../theme";
 import type { SurahAudio } from "../audio/useSurahAudio";
+import { useT } from "../i18n/I18nProvider";
 
 const COUNTS = [Infinity, 2, 3, 5, 10];
 const countLabel = (n: number): string => (n === Infinity ? "∞" : `${n}×`);
 
 export function AudioRangeControls({ audio, verses }: { audio: SurahAudio; verses: VerseKey[] }) {
   const { colors } = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [open, setOpen] = useState(false);
   const [fromIdx, setFromIdx] = useState(0);
@@ -32,11 +34,11 @@ export function AudioRangeControls({ audio, verses }: { audio: SurahAudio; verse
 
   const stepper = (value: string, onMinus: () => void, onPlus: () => void, a11y: string) => (
     <View style={styles.stepper}>
-      <Pressable onPress={onMinus} hitSlop={8} accessibilityLabel={`${a11y} earlier`}>
+      <Pressable onPress={onMinus} hitSlop={8} accessibilityLabel={a11y === "start" ? t("audio.rangeStartEarlier") : t("audio.rangeEndEarlier")}>
         <Text style={styles.stepBtn}>−</Text>
       </Pressable>
       <Text style={styles.stepVal}>{value}</Text>
-      <Pressable onPress={onPlus} hitSlop={8} accessibilityLabel={`${a11y} later`}>
+      <Pressable onPress={onPlus} hitSlop={8} accessibilityLabel={a11y === "start" ? t("audio.rangeStartLater") : t("audio.rangeEndLater")}>
         <Text style={styles.stepBtn}>+</Text>
       </Pressable>
     </View>
@@ -48,7 +50,7 @@ export function AudioRangeControls({ audio, verses }: { audio: SurahAudio; verse
         <Pressable
           onPress={() => audio.setRate(cyclePlaybackRate(audio.rate))}
           style={styles.chip}
-          accessibilityLabel={`Playback speed ${audio.rate}×`}
+          accessibilityLabel={t("audio.playbackSpeed", { rate: audio.rate })}
         >
           <Text style={[styles.chipText, audio.rate !== 1 && styles.chipTextOn]}>
             {audio.rate}×
@@ -57,7 +59,7 @@ export function AudioRangeControls({ audio, verses }: { audio: SurahAudio; verse
         <Pressable
           onPress={() => setOpen((v) => !v)}
           style={styles.chip}
-          accessibilityLabel="Repeat an āyah range"
+          accessibilityLabel={t("audio.repeatRange")}
         >
           <Text style={[styles.chipText, open && styles.chipTextOn]}>A–B</Text>
         </Pressable>
@@ -68,28 +70,28 @@ export function AudioRangeControls({ audio, verses }: { audio: SurahAudio; verse
             label(from),
             () => setFromIdx((i) => clampIdx(i - 1)),
             () => setFromIdx((i) => clampIdx(i + 1)),
-            "Range start",
+            "start",
           )}
           <Text style={styles.arrow}>→</Text>
           {stepper(
             label(to),
             () => setToIdx((i) => clampIdx(i - 1)),
             () => setToIdx((i) => clampIdx(i + 1)),
-            "Range end",
+            "end",
           )}
           <Pressable
             onPress={() => setCountIdx((i) => (i + 1) % COUNTS.length)}
             style={styles.chip}
-            accessibilityLabel={`Repeat ${countLabel(count)}`}
+            accessibilityLabel={t("audio.repeat", { count: countLabel(count) })}
           >
             <Text style={styles.chipText}>{countLabel(count)}</Text>
           </Pressable>
           <Pressable
             onPress={() => audio.playRange(verses, from, to, count)}
             style={styles.go}
-            accessibilityLabel="Loop the range"
+            accessibilityLabel={t("audio.loopRange")}
           >
-            <Text style={styles.goText}>Loop</Text>
+            <Text style={styles.goText}>{t("audio.loop")}</Text>
           </Pressable>
         </View>
       )}

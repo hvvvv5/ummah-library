@@ -13,14 +13,15 @@
  * for Arabic, e.g. `SurahReaderScreen`'s `mushaf` style).
  */
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { DEFAULT_LOCALE, type Locale } from "./config";
+import { DEFAULT_LOCALE, localeDir, type Locale } from "./config";
 import { readLocale, writeLocale } from "./locale-store";
 import { MESSAGES, type MessageKey } from "./messages";
 
 interface I18nContextValue {
   locale: Locale;
+  dir: "ltr" | "rtl";
   setLocale: (next: Locale) => void;
-  t: (key: MessageKey) => string;
+  t: (key: MessageKey, values?: Record<string, string | number>) => string;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -37,9 +38,19 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     void writeLocale(next);
   };
 
-  const t = (key: MessageKey): string => MESSAGES[locale]?.[key] ?? MESSAGES.en[key] ?? key;
+  const t = (key: MessageKey, values?: Record<string, string | number>): string => {
+    const message = MESSAGES[locale]?.[key] ?? MESSAGES.en[key] ?? key;
+    if (!values) return message;
+    return message.replace(/\{([A-Za-z0-9_]+)\}/g, (placeholder, name: string) =>
+      Object.prototype.hasOwnProperty.call(values, name) ? String(values[name]) : placeholder,
+    );
+  };
 
-  return <I18nContext.Provider value={{ locale, setLocale, t }}>{children}</I18nContext.Provider>;
+  return (
+    <I18nContext.Provider value={{ locale, dir: localeDir(locale), setLocale, t }}>
+      {children}
+    </I18nContext.Provider>
+  );
 }
 
 export function useI18n(): I18nContextValue {
@@ -49,6 +60,6 @@ export function useI18n(): I18nContextValue {
 }
 
 /** Convenience hook for components that only need the lookup. */
-export function useT(): (key: MessageKey) => string {
+export function useT(): (key: MessageKey, values?: Record<string, string | number>) => string {
   return useI18n().t;
 }

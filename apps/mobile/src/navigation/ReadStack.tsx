@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useTheme } from "../theme";
+import { useT } from "../i18n/I18nProvider";
 import { SurahListScreen } from "../screens/SurahListScreen";
 import { SurahReaderScreen } from "../screens/SurahReaderScreen";
 import { JuzReaderScreen } from "../screens/JuzReaderScreen";
@@ -13,6 +14,7 @@ const Stack = createNativeStackNavigator<ReadStackParamList>();
 
 export function ReadStack() {
   const { colors } = useTheme();
+  const t = useT();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -26,21 +28,21 @@ export function ReadStack() {
       <Stack.Screen
         name="SurahReader"
         component={SurahReaderScreen}
-        options={{ title: "", headerBackTitle: "Surahs" }}
+        options={{ title: "", headerBackTitle: t("nav.surahs") }}
       />
       <Stack.Screen
         name="JuzReader"
         component={JuzReaderScreen}
-        options={({ route }) => ({ title: `Juzʾ ${route.params.juz}` })}
+        options={({ route }) => ({ title: t("nav.juz", { number: route.params.juz }) })}
       />
-      <Stack.Screen name="Search" component={SearchScreen} options={{ title: "Search" }} />
+      <Stack.Screen name="Search" component={SearchScreen} options={{ title: t("nav.search") }} />
       <Stack.Screen
         name="MushafPage"
         component={MushafPageScreen}
-        options={{ title: "", headerBackTitle: "Back" }}
+        options={{ title: "", headerBackTitle: t("nav.back") }}
       />
-      <Stack.Screen name="Plans" component={PlansScreen} options={{ title: "Reading Plans" }} />
-      <Stack.Screen name="PlanDetail" component={PlanDetailScreen} options={{ title: "Plan", headerBackTitle: "Plans" }} />
+      <Stack.Screen name="Plans" component={PlansScreen} options={{ title: t("nav.plans") }} />
+      <Stack.Screen name="PlanDetail" component={PlanDetailScreen} options={{ title: t("nav.plan"), headerBackTitle: t("nav.plans") }} />
     </Stack.Navigator>
   );
 }

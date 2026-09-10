@@ -24,6 +24,7 @@ import {
   type ReadingState,
 } from "../reading-goals";
 import type { MoreStackParamList } from "../navigation/types";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<MoreStackParamList, "ReadingGoals">;
 
@@ -42,6 +43,7 @@ function lastSevenDays(log: Record<string, number>) {
 
 export function ReadingGoalsScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [state, setState] = useState<ReadingState | null>(null);
 
@@ -103,8 +105,8 @@ export function ReadingGoalsScreen({ navigation }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
-      <Text style={styles.h1}>Reading goals</Text>
-      <Text style={styles.subtitle}>Build a daily Quran habit</Text>
+      <Text style={[styles.h1, { writingDirection: dir }]}>{t("nav.goals")}</Text>
+      <Text style={[styles.subtitle, { writingDirection: dir }]}>{t("goals.subtitle")}</Text>
 
       <View style={styles.ringCard}>
         <View style={styles.ringWrap}>
@@ -125,29 +127,29 @@ export function ReadingGoalsScreen({ navigation }: Props) {
           </Svg>
           <View style={styles.ringCenter}>
             <Text style={styles.ringNum}>{pagesToday}</Text>
-            <Text style={styles.ringLabel}>of {goal} pages today</Text>
+            <Text style={[styles.ringLabel, { writingDirection: dir }]}>{t("goals.progress", { goal })}</Text>
           </View>
         </View>
         <Text style={styles.ringStatus}>
           {done
-            ? "Today’s goal met — māshāʾAllāh ✓"
-            : `${remaining} page${remaining === 1 ? "" : "s"} to reach today’s goal`}
+            ? t("goals.met")
+            : t(remaining === 1 ? "goals.remainingOne" : "goals.remaining", { count: remaining })}
         </Text>
       </View>
 
       <View style={styles.row2}>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>{streak > 0 ? `${streak} 🔥` : "—"}</Text>
-          <Text style={styles.statLabel}>Day streak</Text>
+          <Text style={[styles.statLabel, { writingDirection: dir }]}>{t("goals.dayStreak")}</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>{khatma ? `${khatmaPct}%` : "—"}</Text>
-          <Text style={styles.statLabel}>{khatma ? "to khatm" : "no khatma"}</Text>
+          <Text style={[styles.statLabel, { writingDirection: dir }]}>{t(khatma ? "goals.toKhatm" : "goals.noKhatma")}</Text>
         </View>
       </View>
 
       <View style={styles.weekCard}>
-        <Text style={styles.sectionLabel}>This week</Text>
+        <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("goals.thisWeek")}</Text>
         <View style={styles.weekRow}>
           {week.map((d, i) => (
             <View key={i} style={styles.weekCol}>
@@ -166,49 +168,47 @@ export function ReadingGoalsScreen({ navigation }: Props) {
         </View>
       </View>
 
-      <Text style={styles.sectionLabel}>Daily goal</Text>
+      <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("goals.dailyGoal")}</Text>
       <View style={styles.pills}>
         {GOAL_OPTIONS.map((g) => (
           <Pressable key={g} style={[styles.pill, g === goal && styles.pillOn]} onPress={() => changeGoal(g)}>
-            <Text style={[styles.pillText, g === goal && styles.pillTextOn]}>{g} pages</Text>
+            <Text style={[styles.pillText, { writingDirection: dir }, g === goal && styles.pillTextOn]}>{t("goals.pages", { count: g })}</Text>
           </Pressable>
         ))}
       </View>
 
-      <Text style={styles.sectionLabel}>Khatma</Text>
+      <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("goals.khatma")}</Text>
       {!khatma ? (
         <View style={styles.pills}>
           {[30, 60, 90].map((dys) => (
             <Pressable key={dys} style={styles.pill} onPress={() => startKhatma(dys)}>
-              <Text style={styles.pillText}>{dys} days</Text>
+              <Text style={[styles.pillText, { writingDirection: dir }]}>{t("goals.days", { count: dys })}</Text>
             </Pressable>
           ))}
         </View>
       ) : khatma.currentPage >= khatma.totalPages ? (
         <View style={styles.khatmaBox}>
-          <Text style={styles.khatmaComplete}>Alhamdulillah — khatm complete! 🎉</Text>
+          <Text style={[styles.khatmaComplete, { writingDirection: dir }]}>{t("goals.complete")}</Text>
           <View style={styles.pills}>
             <Pressable style={styles.pill} onPress={() => adjustKhatma(-1)}>
               <Text style={styles.pillText}>−1</Text>
             </Pressable>
             <Pressable style={styles.pill} onPress={clearKhatmaAndRefresh}>
-              <Text style={styles.pillText}>Start a new khatm</Text>
+              <Text style={[styles.pillText, { writingDirection: dir }]}>{t("goals.startNew")}</Text>
             </Pressable>
           </View>
         </View>
       ) : (
         <View style={styles.khatmaBox}>
           <Text style={styles.khatmaInfo}>
-            Page {khatma.currentPage}/{khatma.totalPages} ·{" "}
-            {Math.max(0, daysBetween(today, khatma.targetDate))}d left ·{" "}
-            {khatmaDailyTarget(khatma, today)}/day
+            {t("goals.khatmaInfo", { page: khatma.currentPage, total: khatma.totalPages, days: Math.max(0, daysBetween(today, khatma.targetDate)), target: khatmaDailyTarget(khatma, today) })}
           </Text>
           <View style={styles.pills}>
             <Pressable
               style={[styles.pill, styles.pillOn]}
               onPress={() => openMushafPage(resumePage)}
             >
-              <Text style={styles.pillTextOn}>Resume p{resumePage}</Text>
+              <Text style={[styles.pillTextOn, { writingDirection: dir }]}>{t("goals.resume", { page: resumePage })}</Text>
             </Pressable>
             <Pressable style={styles.pill} onPress={() => adjustKhatma(1)}>
               <Text style={styles.pillText}>+1</Text>
@@ -217,16 +217,16 @@ export function ReadingGoalsScreen({ navigation }: Props) {
               <Text style={styles.pillText}>−1</Text>
             </Pressable>
             <Pressable style={styles.pill} onPress={clearKhatmaAndRefresh}>
-              <Text style={styles.pillText}>Clear</Text>
+              <Text style={[styles.pillText, { writingDirection: dir }]}>{t("goals.clear")}</Text>
             </Pressable>
           </View>
         </View>
       )}
 
       <Pressable style={styles.openBtn} onPress={() => openMushafPage(resumePage)}>
-        <Text style={styles.openBtnText}>▶ Open the Mushaf</Text>
+        <Text style={[styles.openBtnText, { writingDirection: dir }]}>{t("goals.openMushaf")}</Text>
       </Pressable>
-      <Text style={styles.foot}>Pages you read in the Mushaf view count towards your goal automatically.</Text>
+      <Text style={[styles.foot, { writingDirection: dir }]}>{t("goals.footnote")}</Text>
     </ScrollView>
   );
 }

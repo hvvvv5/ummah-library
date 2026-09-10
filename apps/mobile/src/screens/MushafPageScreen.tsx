@@ -16,6 +16,7 @@ import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
 import { useSettings } from "../state/SettingsContext";
 import type { ReadStackParamList } from "../navigation/types";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<ReadStackParamList, "MushafPage">;
 
@@ -32,14 +33,15 @@ export function MushafPageScreen({ navigation, route }: Props) {
   // passes a number — coerce so both work.
   const n = Number(route.params.page);
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { scale } = useSettings();
   const [sections, setSections] = useState<Section[] | null>(null);
   const [error, setError] = useState(false);
 
   useLayoutEffect(() => {
-    navigation.setOptions({ title: `Page ${n}` });
-  }, [navigation, n]);
+    navigation.setOptions({ title: t("mushaf.page", { number: n }) });
+  }, [navigation, n, t]);
 
   useEffect(() => {
     if (!isValidPageNumber(n)) {
@@ -83,7 +85,7 @@ export function MushafPageScreen({ navigation, route }: Props) {
   if (error) {
     return (
       <View style={styles.center}>
-        <Text style={styles.error}>Couldn’t load page {n}.</Text>
+        <Text style={[styles.error, { writingDirection: dir }]}>{t("mushaf.loadError", { number: n })}</Text>
       </View>
     );
   }
@@ -101,7 +103,7 @@ export function MushafPageScreen({ navigation, route }: Props) {
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.pageMeta}>
-          Juzʾ {juz} · Page {n} / {TOTAL_PAGES_MADANI}
+          {t("mushaf.meta", { juz, page: n, total: TOTAL_PAGES_MADANI })}
         </Text>
         <View style={styles.page}>
           {sections.map((s, i) => (
@@ -126,14 +128,14 @@ export function MushafPageScreen({ navigation, route }: Props) {
         <View style={styles.nav}>
           {n > 1 ? (
             <Pressable onPress={() => navigation.replace("MushafPage", { page: n - 1 })}>
-              <Text style={styles.navText}>← Previous</Text>
+              <Text style={[styles.navText, { writingDirection: dir }]}>{t("surahReader.previous")}</Text>
             </Pressable>
           ) : (
             <View />
           )}
           {n < TOTAL_PAGES_MADANI ? (
             <Pressable onPress={() => navigation.replace("MushafPage", { page: n + 1 })}>
-              <Text style={styles.navText}>Next →</Text>
+              <Text style={[styles.navText, { writingDirection: dir }]}>{t("surahReader.next")}</Text>
             </Pressable>
           ) : (
             <View />

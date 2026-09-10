@@ -38,6 +38,7 @@ import {
 } from "../plans";
 import { PlanCompletionCard } from "../components/PlanCompletionCard";
 import type { ReadStackParamList } from "../navigation/types";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<ReadStackParamList, "Plans">;
 type Nav = Props["navigation"];
@@ -51,6 +52,7 @@ function openTarget(navigation: Nav, portion: DayPortion) {
 
 export function PlansScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [plan, setPlan] = useState<ActivePlan | null>(null);
   const [ready, setReady] = useState(false);
@@ -119,8 +121,8 @@ export function PlansScreen({ navigation }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
-      <Text style={styles.h1}>Reading plans</Text>
-      <Text style={styles.subtitle}>Structured journeys through the Book</Text>
+      <Text style={[styles.h1, { writingDirection: dir }]}>{t("nav.plans")}</Text>
+      <Text style={[styles.subtitle, { writingDirection: dir }]}>{t("plans.subtitle")}</Text>
 
       {ready && plan && complete ? (
         <PlanCompletionCard plan={plan} onStart={(id) => void startPlan(id).then(refresh)} />
@@ -151,17 +153,17 @@ export function PlansScreen({ navigation }: Props) {
               </View>
               <View style={styles.activeMeta}>
                 <Text style={styles.activeKicker}>
-                  {paused ? "⏸ Paused" : "Active"} · Day {day} of {totalDays}
+                  {t(paused ? "plans.pausedDay" : "plans.activeDay", { day, total: totalDays })}
                 </Text>
                 <Text style={styles.activeName}>{plan.template.name}</Text>
                 <Text style={styles.activeToday}>
-                  Today: <Text style={styles.activeTodayStrong}>{portion.label}</Text> · {portion.est}
+                  {t("plans.today", { portion: portion.label, estimate: portion.est })}
                 </Text>
               </View>
             </View>
             <Pressable style={styles.readBtn} onPress={() => openTarget(navigation, portion)}>
               <Icon name="book" size={15} color={colors.ink} sw={1.8} />
-              <Text style={styles.readBtnText}>Read today</Text>
+              <Text style={[styles.readBtnText, { writingDirection: dir }]}>{t("plans.readToday")}</Text>
             </Pressable>
           </View>
 
@@ -171,47 +173,47 @@ export function PlansScreen({ navigation }: Props) {
               onPress={() => void toggleDay(day).then(refresh)}
             >
               <Text style={[styles.pillText, isDayComplete(plan, day) && styles.pillTextOn]}>
-                {isDayComplete(plan, day) ? "✓ Day done" : `Mark Day ${day} done`}
+                {isDayComplete(plan, day) ? t("plans.dayDone") : t("plans.markDayDone", { day })}
               </Text>
             </Pressable>
             <Pressable style={styles.pill} onPress={() => void clearPlan().then(refresh)}>
-              <Text style={styles.pillText}>Leave plan</Text>
+              <Text style={[styles.pillText, { writingDirection: dir }]}>{t("plans.leave")}</Text>
             </Pressable>
             {paused && (
               <Pressable style={[styles.pill, styles.pillOn]} onPress={() => void resumePlan().then(refresh)}>
-                <Text style={styles.pillTextOn}>▶ Resume</Text>
+                <Text style={[styles.pillTextOn, { writingDirection: dir }]}>{t("plans.resume")}</Text>
               </Pressable>
             )}
             <Pressable
               style={styles.pill}
               onPress={() => navigation.navigate("PlanDetail", { id: plan.template.id })}
             >
-              <Text style={styles.pillText}>Details</Text>
+              <Text style={[styles.pillText, { writingDirection: dir }]}>{t("plans.details")}</Text>
             </Pressable>
           </View>
 
           {behind < 0 && catchUp ? (
             <View style={styles.behindCard}>
               <Text style={styles.behindTitle}>
-                You’re {Math.abs(behind)} {Math.abs(behind) === 1 ? "day" : "days"} behind
+                {t("plans.behind", { count: Math.abs(behind) })}
               </Text>
-              <Text style={styles.behindSub}>Catch up, re-pace to keep your finish date, or take more time.</Text>
+              <Text style={[styles.behindSub, { writingDirection: dir }]}>{t("plans.catchUpHint")}</Text>
               <View style={styles.behindActions}>
                 <Pressable style={styles.behindPrimary} onPress={() => openTarget(navigation, catchUp)}>
                   <Icon name="book" size={14} color={colors.ink} sw={1.8} />
-                  <Text style={styles.behindPrimaryText}>Catch up</Text>
+                  <Text style={[styles.behindPrimaryText, { writingDirection: dir }]}>{t("plans.catchUp")}</Text>
                 </Pressable>
                 <Pressable style={styles.pill} onPress={() => void rebalancePlan().then(refresh)}>
-                  <Text style={styles.pillText}>Rebalance</Text>
+                  <Text style={[styles.pillText, { writingDirection: dir }]}>{t("plans.rebalance")}</Text>
                 </Pressable>
                 <Pressable style={styles.pill} onPress={() => void extendPlanBy(7).then(refresh)}>
-                  <Text style={styles.pillText}>Extend +1wk</Text>
+                  <Text style={[styles.pillText, { writingDirection: dir }]}>{t("plans.extend")}</Text>
                 </Pressable>
               </View>
             </View>
           ) : null}
 
-          <Text style={styles.sectionLabel}>Your days</Text>
+          <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("plans.yourDays")}</Text>
           <View style={styles.week}>
             {planWeekWindow(plan, day).map((n) => {
               const done = isDayComplete(plan, n);
@@ -221,7 +223,7 @@ export function PlansScreen({ navigation }: Props) {
                   key={n}
                   style={[styles.dayCell, isToday && styles.dayCellToday]}
                 >
-                  <Text style={[styles.dayCellLabel, isToday && styles.dayCellLabelToday]}>D{n}</Text>
+                  <Text style={[styles.dayCellLabel, isToday && styles.dayCellLabelToday]}>{t("plans.dayShort", { day: n })}</Text>
                   <View style={[styles.dayDot, done && styles.dayDotDone]}>
                     {done ? (
                       <Icon name="check" size={12} color={colors.ink} sw={2} />
@@ -237,11 +239,11 @@ export function PlansScreen({ navigation }: Props) {
       ) : ready ? (
         <View style={styles.empty}>
           <Khatam size={56} color={colors.accent} sw={1.1} opacity={0.5} />
-          <Text style={styles.emptyText}>No active plan yet. Choose one below to begin a journey.</Text>
+          <Text style={[styles.emptyText, { writingDirection: dir }]}>{t("plans.empty")}</Text>
         </View>
       ) : null}
 
-      <Text style={styles.sectionLabel}>Browse plans</Text>
+      <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("plans.browse")}</Text>
       <View style={styles.library}>
         {PLAN_TEMPLATES.map((pl) => {
           const isActive = plan?.template.id === pl.id;
@@ -267,14 +269,14 @@ export function PlansScreen({ navigation }: Props) {
                     <View style={[styles.fill, { width: `${plPct}%` }]} />
                   </View>
                   <View style={styles.progressMeta}>
-                    <Text style={styles.inProgress}>In progress</Text>
-                    <Text style={styles.continue}>Continue →</Text>
+                    <Text style={[styles.inProgress, { writingDirection: dir }]}>{t("plans.inProgress")}</Text>
+                    <Text style={[styles.continue, { writingDirection: dir }]}>{t("plans.continue")}</Text>
                   </View>
                 </View>
               ) : (
                 <View style={styles.startRow}>
                   <Icon name="plus" size={15} color={colors.accent} sw={2} />
-                  <Text style={styles.startText}>Start plan</Text>
+                  <Text style={[styles.startText, { writingDirection: dir }]}>{t("plans.start")}</Text>
                 </View>
               )}
             </Pressable>
@@ -282,18 +284,18 @@ export function PlansScreen({ navigation }: Props) {
         })}
       </View>
 
-      <Text style={styles.sectionLabel}>Create your own</Text>
+      <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("plans.createOwn")}</Text>
       {!customOpen ? (
         <Pressable style={styles.createBtn} onPress={() => setCustomOpen(true)}>
           <Icon name="plus" size={16} color={colors.accent} sw={2} />
-          <Text style={styles.createText}>Create a custom plan</Text>
+          <Text style={[styles.createText, { writingDirection: dir }]}>{t("plans.createCustom")}</Text>
         </Pressable>
       ) : (
         <View style={styles.customCard}>
           <View style={styles.seg}>
             {([
-              { v: "pace", l: "Pages a day" },
-              { v: "duration", l: "Finish in…" },
+              { v: "pace", l: t("plans.pagesPerDay") },
+              { v: "duration", l: t("plans.finishIn") },
             ] as const).map((o) => (
               <Pressable
                 key={o.v}
@@ -304,7 +306,7 @@ export function PlansScreen({ navigation }: Props) {
               </Pressable>
             ))}
           </View>
-          <Text style={styles.customLabel}>{mode === "pace" ? "Pages a day" : "Days to finish"}</Text>
+          <Text style={[styles.customLabel, { writingDirection: dir }]}>{t(mode === "pace" ? "plans.pagesPerDay" : "plans.daysToFinish")}</Text>
           <TextInput
             value={mode === "pace" ? perDay : days}
             onChangeText={mode === "pace" ? setPerDay : setDays}
@@ -315,8 +317,8 @@ export function PlansScreen({ navigation }: Props) {
           <Text style={styles.previewText}>
             {customDraft
               ? mode === "pace"
-                ? `≈ ${customDays} days · finishes ${customEnd}`
-                : `≈ ${customPerDay} pages a day · ${customDays} days`
+                ? t("plans.previewPace", { days: customDays, date: customEnd })
+                : t("plans.previewDuration", { pages: customPerDay, days: customDays })
               : customErrors[0]}
           </Text>
           <View style={styles.customActions}>
@@ -325,10 +327,10 @@ export function PlansScreen({ navigation }: Props) {
               disabled={!customDraft}
               onPress={createCustom}
             >
-              <Text style={[styles.startCustomText, !customDraft && styles.startCustomTextOff]}>Start plan</Text>
+              <Text style={[styles.startCustomText, { writingDirection: dir }, !customDraft && styles.startCustomTextOff]}>{t("plans.start")}</Text>
             </Pressable>
             <Pressable style={styles.pill} onPress={() => setCustomOpen(false)}>
-              <Text style={styles.pillText}>Cancel</Text>
+              <Text style={[styles.pillText, { writingDirection: dir }]}>{t("plans.cancel")}</Text>
             </Pressable>
           </View>
         </View>

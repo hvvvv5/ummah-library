@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useTheme } from "../theme";
+import { useT } from "../i18n/I18nProvider";
 import { FONT } from "../fonts";
 import { MoreMenuScreen } from "../screens/MoreMenuScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
@@ -16,6 +17,7 @@ const Stack = createNativeStackNavigator<MoreStackParamList>();
 
 export function MoreStack() {
   const { colors } = useTheme();
+  const t = useT();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -26,14 +28,14 @@ export function MoreStack() {
       }}
     >
       <Stack.Screen name="MoreMenu" component={MoreMenuScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Your journey" }} />
-      <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: "Settings" }} />
-      <Stack.Screen name="Names" component={NamesScreen} options={{ title: "99 Names" }} />
-      <Stack.Screen name="Hadith" component={HadithScreen} options={{ title: "Hadith" }} />
-      <Stack.Screen name="Privacy" component={PrivacyScreen} options={{ title: "Privacy" }} />
-      <Stack.Screen name="Collections" component={CollectionsScreen} options={{ title: "Bookmarks" }} />
-      <Stack.Screen name="ReadingGoals" component={ReadingGoalsScreen} options={{ title: "Reading Goals" }} />
-      <Stack.Screen name="Tafsir" component={TafsirScreen} options={{ title: "Tafsir" }} />
+      <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: t("nav.journey") }} />
+      <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: t("common.settings") }} />
+      <Stack.Screen name="Names" component={NamesScreen} options={{ title: t("nav.names") }} />
+      <Stack.Screen name="Hadith" component={HadithScreen} options={{ title: t("nav.hadith") }} />
+      <Stack.Screen name="Privacy" component={PrivacyScreen} options={{ title: t("nav.privacy") }} />
+      <Stack.Screen name="Collections" component={CollectionsScreen} options={{ title: t("nav.bookmarks") }} />
+      <Stack.Screen name="ReadingGoals" component={ReadingGoalsScreen} options={{ title: t("nav.goals") }} />
+      <Stack.Screen name="Tafsir" component={TafsirScreen} options={{ title: t("nav.tafsir") }} />
     </Stack.Navigator>
   );
 }

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "../Type";
 import type { Translation } from "@ummahlibrary/core";
 import { useTheme, type Palette } from "../theme";
+import { useI18n } from "../i18n/I18nProvider";
 
 /**
  * Single-choice translation picker for the "Reading → Translations" view: pick
@@ -19,6 +20,7 @@ export function ReadingTranslationPicker({
   onManage: () => void;
 }) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [open, setOpen] = useState(false);
   const active = shortlist.find((e) => e.id === activeId);
@@ -26,11 +28,11 @@ export function ReadingTranslationPicker({
   return (
     <View style={styles.wrap}>
       <Pressable style={styles.trigger} onPress={() => setOpen((o) => !o)}>
-        <Text style={styles.triggerText}>Translation: {active?.name ?? "—"} ▾</Text>
+        <Text style={[styles.triggerText, { writingDirection: dir }]}>{t("reader.translationPicker", { name: active?.name ?? "—" })}</Text>
       </Pressable>
       {open && (
         <View style={styles.menu}>
-          <Text style={styles.menuHead}>My Translations</Text>
+          <Text style={[styles.menuHead, { writingDirection: dir }]}>{t("reader.myTranslations")}</Text>
           {shortlist.map((e) => (
             <Pressable
               key={e.id}
@@ -53,7 +55,7 @@ export function ReadingTranslationPicker({
               onManage();
             }}
           >
-            <Text style={styles.manageText}>⚙ Select translations</Text>
+            <Text style={[styles.manageText, { writingDirection: dir }]}>{t("reader.selectTranslations")}</Text>
           </Pressable>
         </View>
       )}

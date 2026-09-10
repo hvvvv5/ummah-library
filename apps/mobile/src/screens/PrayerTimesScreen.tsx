@@ -27,6 +27,7 @@ import { FONT } from "../fonts";
 import { fmtCountdown, fmtPrayerTime, localISODate } from "../utils";
 import { expoNotifier } from "../notifier";
 import { type PrayerReminderPrefs, readPrayerReminderPrefs, setPrayerReminder } from "../prayer-reminders";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Status = "idle" | "locating" | "loading" | "ready" | "error" | "denied";
 
@@ -49,6 +50,7 @@ const PRAYER_ICON: Record<PrayerName, IconName> = {
 
 export function PrayerTimesScreen() {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [coords, setCoords] = useState<Coordinates | null>(null);
@@ -166,10 +168,10 @@ export function PrayerTimesScreen() {
       {!coords && status !== "locating" && (
         <View style={styles.cta}>
           <Text style={styles.ctaText}>
-            See accurate prayer times for where you are. Your location stays on this device.
+            {t("prayerTimes.intro")}
           </Text>
           <Pressable style={styles.ctaBtn} onPress={locate}>
-            <Text style={styles.ctaBtnText}>📍 Use my location</Text>
+            <Text style={[styles.ctaBtnText, { writingDirection: dir }]}>{t("qibla.useLocation")}</Text>
           </Pressable>
         </View>
       )}
@@ -177,21 +179,21 @@ export function PrayerTimesScreen() {
       {status === "locating" && (
         <View style={styles.center}>
           <ActivityIndicator color={colors.accent} />
-          <Text style={styles.muted}>Getting your location…</Text>
+          <Text style={[styles.muted, { writingDirection: dir }]}>{t("qibla.gettingLocation")}</Text>
         </View>
       )}
 
       {status === "denied" && (
         <View style={styles.cta}>
-          <Text style={styles.ctaText}>Location permission was denied. Enable it in Settings.</Text>
+          <Text style={[styles.ctaText, { writingDirection: dir }]}>{t("qibla.permissionDenied")}</Text>
           <Pressable style={styles.chip} onPress={locate}>
-            <Text style={styles.chipText}>Try again</Text>
+            <Text style={[styles.chipText, { writingDirection: dir }]}>{t("qibla.tryAgain")}</Text>
           </Pressable>
         </View>
       )}
 
       {status === "error" && (
-        <Text style={styles.muted}>Couldn't load prayer times. Check your connection.</Text>
+        <Text style={[styles.muted, { writingDirection: dir }]}>{t("prayerTimes.loadError")}</Text>
       )}
 
       {status === "loading" && (
@@ -207,10 +209,10 @@ export function PrayerTimesScreen() {
               <View style={styles.heroWatermark} pointerEvents="none">
                 <Khatam size={220} color={colors.accent} sw={0.9} opacity={0.06} />
               </View>
-              <Text style={styles.heroLabel}>Next · {PRAYER_LABELS[next.name]}</Text>
+              <Text style={[styles.heroLabel, { writingDirection: dir }]}>{t("prayerTimes.next", { name: PRAYER_LABELS[next.name] })}</Text>
               <Text style={styles.heroCountdown}>{fmtCountdown(next.at, now)}</Text>
               <Text style={styles.heroSub}>
-                until {PRAYER_LABELS[next.name]} at {fmtPrayerTime(next.at, coords)}
+                {t("prayerTimes.until", { name: PRAYER_LABELS[next.name], time: fmtPrayerTime(next.at, coords) })}
               </Text>
             </View>
           )}
@@ -255,7 +257,7 @@ export function PrayerTimesScreen() {
             })}
           </View>
 
-          <Text style={styles.sectionLabel}>Night</Text>
+          <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("prayerTimes.night")}</Text>
           <View style={styles.list}>
             {SUPPLEMENTARY_TIMING_NAMES.map((name, i) => (
               <View
@@ -273,7 +275,7 @@ export function PrayerTimesScreen() {
 
           <View style={styles.controls}>
             <View style={styles.pickerRow}>
-              <Text style={styles.label}>Method</Text>
+              <Text style={[styles.label, { writingDirection: dir }]}>{t("prayerTimes.method")}</Text>
               <View style={styles.chips}>
                 {CALCULATION_METHODS.map((m) => (
                   <Pressable
@@ -290,7 +292,7 @@ export function PrayerTimesScreen() {
             </View>
 
             <View style={styles.pickerRow}>
-              <Text style={styles.label}>Asr (madhab)</Text>
+              <Text style={[styles.label, { writingDirection: dir }]}>{t("prayerTimes.madhab")}</Text>
               <View style={styles.chips}>
                 {MADHABS.map((m) => (
                   <Pressable
@@ -307,7 +309,7 @@ export function PrayerTimesScreen() {
             </View>
 
             <View style={styles.pickerRow}>
-              <Text style={styles.label}>High-latitude rule</Text>
+              <Text style={[styles.label, { writingDirection: dir }]}>{t("prayerTimes.highLatitude")}</Text>
               <View style={styles.chips}>
                 {HIGH_LATITUDE_RULES.map((r) => (
                   <Pressable
@@ -324,10 +326,10 @@ export function PrayerTimesScreen() {
             </View>
 
             <Pressable style={styles.chip} onPress={locate}>
-              <Text style={styles.chipText}>📍 Update location</Text>
+              <Text style={[styles.chipText, { writingDirection: dir }]}>{t("qibla.updateLocation")}</Text>
             </Pressable>
           </View>
-          <Text style={styles.foot}>Times computed on the server · {localISODate(now)}</Text>
+          <Text style={[styles.foot, { writingDirection: dir }]}>{t("prayerTimes.computed", { date: localISODate(now) })}</Text>
         </>
       )}
     </ScrollView>

@@ -4,6 +4,7 @@ import { Khatam, Icon } from "@ummahlibrary/ui";
 import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
 import { type ActivePlan, PLAN_TEMPLATES, planDuration, totalUnits, unitWord } from "../plans";
+import { useI18n } from "../i18n/I18nProvider";
 
 /**
  * Completion milestone for a finished plan (#63), mirroring the web card: a
@@ -18,6 +19,7 @@ export function PlanCompletionCard({
   onStart: (templateId: string) => void;
 }) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const unit = plan.template.range.unit;
@@ -28,7 +30,7 @@ export function PlanCompletionCard({
 
   function share() {
     void Share.share({
-      message: `${name} complete — ${total} ${unitWord(unit, total)} over ${days} days. Alhamdulillah. · Ummah Library`,
+      message: t("planCompletion.shareMessage", { name, total, unit: unitWord(unit, total), days }),
     });
   }
 
@@ -37,20 +39,18 @@ export function PlanCompletionCard({
       <View style={styles.crest}>
         <Khatam size={72} color={colors.accent} sw={1} opacity={0.85} />
       </View>
-      <Text style={styles.kicker}>Plan complete</Text>
-      <Text style={styles.title}>Alhamdulillah — you finished {name}</Text>
-      <Text style={styles.sub}>
-        {total} {unitWord(unit, total)} over {days} {days === 1 ? "day" : "days"}. May Allah accept it.
-      </Text>
+      <Text style={[styles.kicker, { writingDirection: dir }]}>{t("planCompletion.kicker")}</Text>
+      <Text style={[styles.title, { writingDirection: dir }]}>{t("planCompletion.title", { name })}</Text>
+      <Text style={[styles.sub, { writingDirection: dir }]}>{t("planCompletion.summary", { total, unit: unitWord(unit, total), days })}</Text>
 
       <Pressable style={styles.shareBtn} onPress={share}>
         <Icon name="share" size={15} color={colors.ink} sw={1.8} />
-        <Text style={styles.shareText}>Share your achievement</Text>
+        <Text style={[styles.shareText, { writingDirection: dir }]}>{t("planCompletion.share")}</Text>
       </Pressable>
 
       {suggestions.length > 0 && (
         <View style={styles.next}>
-          <Text style={styles.nextLabel}>Begin a new journey</Text>
+          <Text style={[styles.nextLabel, { writingDirection: dir }]}>{t("planCompletion.next")}</Text>
           <View style={styles.suggestions}>
             {suggestions.map((t) => (
               <Pressable key={t.id} style={styles.suggestion} onPress={() => onStart(t.id)}>

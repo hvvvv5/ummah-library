@@ -7,6 +7,7 @@ import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
 import { useLibrary, type HifzRecord } from "../state/LibraryContext";
 import type { HifzStackParamList } from "../navigation/types";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<HifzStackParamList, "HifzReview">;
 
@@ -24,15 +25,16 @@ function loadSurahArabic(surah: number): Promise<Map<number, string>> {
   return pending;
 }
 
-const RATINGS: { rating: ReviewRating; label: string; color: keyof Palette }[] = [
-  { rating: "again", label: "Again", color: "error" },
-  { rating: "hard", label: "Hard", color: "muted" },
-  { rating: "good", label: "Good", color: "accent" },
-  { rating: "easy", label: "Easy", color: "accentHi" },
+const RATINGS: { rating: ReviewRating; labelKey: "hifz.rating.again" | "hifz.rating.hard" | "hifz.rating.good" | "hifz.rating.easy"; color: keyof Palette }[] = [
+  { rating: "again", labelKey: "hifz.rating.again", color: "error" },
+  { rating: "hard", labelKey: "hifz.rating.hard", color: "muted" },
+  { rating: "good", labelKey: "hifz.rating.good", color: "accent" },
+  { rating: "easy", labelKey: "hifz.rating.easy", color: "accentHi" },
 ];
 
 export function HifzReviewScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { ready, dueRecords, trackedCount, setHifzCard, touchStreak, recordReview } = useLibrary();
 
@@ -91,10 +93,8 @@ export function HifzReviewScreen({ navigation }: Props) {
   if (trackedCount === 0) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.doneTitle}>Nothing to review yet</Text>
-        <Text style={styles.muted}>
-          Open a surah and tap ＋ Hifz on an āyah to start memorizing.
-        </Text>
+        <Text style={[styles.doneTitle, { writingDirection: dir }]}>{t("hifz.nothingReview")}</Text>
+        <Text style={[styles.muted, { writingDirection: dir }]}>{t("hifz.nothingReviewBody")}</Text>
       </View>
     );
   }
@@ -104,15 +104,12 @@ export function HifzReviewScreen({ navigation }: Props) {
     return (
       <View style={styles.centered}>
         <Text style={styles.celebrate}>🎉</Text>
-        <Text style={styles.doneTitle}>All caught up!</Text>
-        <Text style={styles.muted}>
-          {queue.length > 0
-            ? `${queue.length} ${queue.length === 1 ? "āyah" : "āyāt"} reviewed · `
-            : ""}
-          {trackedCount} tracked in total.
+        <Text style={[styles.doneTitle, { writingDirection: dir }]}>{t("hifz.caughtUp")}</Text>
+        <Text style={[styles.muted, { writingDirection: dir }]}>
+          {queue.length > 0 ? t("hifz.reviewedTotal", { reviewed: queue.length, tracked: trackedCount }) : t("hifz.trackedTotal", { tracked: trackedCount })}
         </Text>
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Back to dashboard</Text>
+          <Text style={[styles.backText, { writingDirection: dir }]}>{t("hifz.backDashboard")}</Text>
         </Pressable>
       </View>
     );
@@ -132,27 +129,27 @@ export function HifzReviewScreen({ navigation }: Props) {
 
       <View style={styles.card}>
         <Text style={styles.ref}>
-          Surah {current.ref.sura} · Āyah {current.ref.aya}
+          {t("hifz.reference", { sura: current.ref.sura, ayah: current.ref.aya })}
         </Text>
 
         {revealed ? (
           <Text style={styles.arabic}>{arabic === null ? "…" : arabic}</Text>
         ) : (
           <Pressable style={styles.reveal} onPress={() => setRevealed(true)}>
-            <Text style={styles.revealText}>Reveal āyah</Text>
+            <Text style={[styles.revealText, { writingDirection: dir }]}>{t("hifz.revealAyah")}</Text>
           </Pressable>
         )}
       </View>
 
       {revealed && (
         <View style={styles.ratings}>
-          {RATINGS.map(({ rating, label, color }) => (
+          {RATINGS.map(({ rating, labelKey, color }) => (
             <Pressable
               key={rating}
               style={[styles.rate, { borderColor: colors[color] }]}
               onPress={() => rate(rating)}
             >
-              <Text style={[styles.rateText, { color: colors[color] }]}>{label}</Text>
+              <Text style={[styles.rateText, { color: colors[color], writingDirection: dir }]}>{t(labelKey)}</Text>
             </Pressable>
           ))}
         </View>

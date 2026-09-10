@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useTheme } from "../theme";
+import { useT } from "../i18n/I18nProvider";
 import { ToolsListScreen } from "../screens/ToolsListScreen";
 import { TasbihScreen } from "../screens/TasbihScreen";
 import { AdhkarScreen } from "../screens/AdhkarScreen";
@@ -18,6 +19,7 @@ const Stack = createNativeStackNavigator<ToolsStackParamList>();
 
 export function ToolsStack() {
   const { colors } = useTheme();
+  const t = useT();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -27,18 +29,18 @@ export function ToolsStack() {
         contentStyle: { backgroundColor: colors.bg },
       }}
     >
-      <Stack.Screen name="ToolsList" component={ToolsListScreen} options={{ title: "Tools" }} />
-      <Stack.Screen name="Tasbih" component={TasbihScreen} options={{ title: "Tasbih" }} />
-      <Stack.Screen name="Adhkar" component={AdhkarScreen} options={{ title: "Adhkar" }} />
-      <Stack.Screen name="PrayerTimes" component={PrayerTimesScreen} options={{ title: "Prayer Times" }} />
-      <Stack.Screen name="PrayerTracker" component={PrayerTrackerScreen} options={{ title: "Prayer Tracker" }} />
-      <Stack.Screen name="Qibla" component={QiblaScreen} options={{ title: "Qibla" }} />
-      <Stack.Screen name="Mosques" component={MosqueFinderScreen} options={{ title: "Nearby Mosques" }} />
-      <Stack.Screen name="HijriCalendar" component={HijriCalendarScreen} options={{ title: "Hijri Calendar" }} />
-      <Stack.Screen name="Zakat" component={ZakatScreen} options={{ title: "Zakat Calculator" }} />
-      <Stack.Screen name="Ramadan" component={RamadanScreen} options={{ title: "Ramadan" }} />
-      <Stack.Screen name="Duas" component={DuasScreen} options={{ title: "Duʿās" }} />
-      <Stack.Screen name="Downloads" component={DownloadsScreen} options={{ title: "Downloads" }} />
+      <Stack.Screen name="ToolsList" component={ToolsListScreen} options={{ title: t("nav.tools") }} />
+      <Stack.Screen name="Tasbih" component={TasbihScreen} options={{ title: t("nav.tasbih") }} />
+      <Stack.Screen name="Adhkar" component={AdhkarScreen} options={{ title: t("nav.adhkar") }} />
+      <Stack.Screen name="PrayerTimes" component={PrayerTimesScreen} options={{ title: t("nav.prayerTimes") }} />
+      <Stack.Screen name="PrayerTracker" component={PrayerTrackerScreen} options={{ title: t("nav.prayerTracker") }} />
+      <Stack.Screen name="Qibla" component={QiblaScreen} options={{ title: t("nav.qibla") }} />
+      <Stack.Screen name="Mosques" component={MosqueFinderScreen} options={{ title: t("nav.mosques") }} />
+      <Stack.Screen name="HijriCalendar" component={HijriCalendarScreen} options={{ title: t("nav.calendar") }} />
+      <Stack.Screen name="Zakat" component={ZakatScreen} options={{ title: t("nav.zakat") }} />
+      <Stack.Screen name="Ramadan" component={RamadanScreen} options={{ title: t("nav.ramadan") }} />
+      <Stack.Screen name="Duas" component={DuasScreen} options={{ title: t("nav.duas") }} />
+      <Stack.Screen name="Downloads" component={DownloadsScreen} options={{ title: t("nav.downloads") }} />
     </Stack.Navigator>
   );
 }

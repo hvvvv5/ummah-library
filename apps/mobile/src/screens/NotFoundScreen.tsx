@@ -5,21 +5,23 @@ import { Khatam } from "@ummahlibrary/ui";
 import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
 import type { RootStackParamList } from "../navigation/types";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "NotFound">;
 
 /** Shown for any URL/deep link that doesn't match a known route (#246). */
 export function NotFoundScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <View style={styles.screen}>
       <Khatam size={72} color={colors.accent} sw={1.1} opacity={0.5} />
-      <Text style={styles.title}>Page not found</Text>
-      <Text style={styles.body}>Couldn’t find what you were looking for.</Text>
+      <Text style={[styles.title, { writingDirection: dir }]}>{t("notFound.title")}</Text>
+      <Text style={[styles.body, { writingDirection: dir }]}>{t("notFound.body")}</Text>
       <Pressable style={styles.btn} onPress={() => navigation.navigate("Tabs", { screen: "Home" })}>
-        <Text style={styles.btnText}>Go to Today</Text>
+        <Text style={[styles.btnText, { writingDirection: dir }]}>{t("notFound.goHome")}</Text>
       </Pressable>
     </View>
   );

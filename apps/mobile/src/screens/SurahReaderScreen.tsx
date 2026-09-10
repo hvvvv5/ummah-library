@@ -42,6 +42,7 @@ import { TranslationManager } from "../components/TranslationManager";
 import { AyahView, type TrLine } from "../components/AyahView";
 import { recordMushafPage } from "../reading-goals";
 import { readActivePlan, todayProgress, todayStr, type ActivePlan } from "../plans";
+import { useI18n, useT } from "../i18n/I18nProvider";
 import type { ReadStackParamList } from "../navigation/types";
 
 type Props = NativeStackScreenProps<ReadStackParamList, "SurahReader">;
@@ -51,6 +52,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
   // passes a number — coerce so core helpers (which require integers) are safe.
   const n = Number(route.params.surah);
   const { colors } = useTheme();
+  const { dir, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const settings = useSettings();
   const {
@@ -137,7 +139,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
     navigation.setOptions({
       title: meta.transliteration,
       headerRight: () => (
-        <Pressable onPress={openMushaf} hitSlop={10} accessibilityLabel="Open in Mushaf page view">
+        <Pressable onPress={openMushaf} hitSlop={10} accessibilityLabel={t("surahReader.openMushaf")}>
           <Icon name="layers" size={22} color={colors.accent} sw={1.8} />
         </Pressable>
       ),
@@ -430,7 +432,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
   if (error) {
     return (
       <View style={styles.center}>
-        <Text style={styles.error}>Couldn’t load this surah.</Text>
+        <Text style={[styles.error, { writingDirection: dir }]}>{t("surahReader.loadError")}</Text>
       </View>
     );
   }
@@ -465,8 +467,8 @@ export function SurahReaderScreen({ navigation, route }: Props) {
             color={isBookmarked(n) ? colors.accent : colors.muted}
             sw={1.8}
           />
-          <Text style={[styles.bookmarkText, isBookmarked(n) && styles.bookmarkTextOn]}>
-            {isBookmarked(n) ? "Bookmarked" : "Bookmark surah"}
+          <Text style={[styles.bookmarkText, { writingDirection: dir }, isBookmarked(n) && styles.bookmarkTextOn]}>
+            {isBookmarked(n) ? t("surahReader.bookmarked") : t("surahReader.bookmark")}
           </Text>
         </Pressable>
       </View>
@@ -491,18 +493,18 @@ export function SurahReaderScreen({ navigation, route }: Props) {
           onPress={() =>
             audio.playingKey ? audio.stop() : verses[0] && audio.playFrom(verses, verses[0], true)
           }
-          accessibilityLabel={audio.playingKey ? "Stop" : "Play surah"}
+          accessibilityLabel={audio.playingKey ? t("surahReader.stop") : t("surahReader.play")}
         >
           <Icon name={audio.playingKey ? "pause" : "play"} size={18} color={colors.ink} />
         </Pressable>
         <Text style={styles.audioStatus} numberOfLines={1}>
           {audio.playingKey
             ? audio.buffering
-              ? "Loading…"
-              : `Playing ${audio.playingKey}`
+              ? t("surahReader.loading")
+              : t("surahReader.playing", { ayah: audio.playingKey })
             : reciter.name}
         </Text>
-        <Pressable onPress={() => audio.setLoop(!audio.loop)} hitSlop={8} accessibilityLabel="Loop">
+        <Pressable onPress={() => audio.setLoop(!audio.loop)} hitSlop={8} accessibilityLabel={t("audio.loop")}>
           <Icon
             name="repeat"
             size={20}
@@ -540,14 +542,14 @@ export function SurahReaderScreen({ navigation, route }: Props) {
     <View style={styles.nav}>
       {n > 1 ? (
         <Pressable onPress={() => navigation.replace("SurahReader", { surah: n - 1 })}>
-          <Text style={styles.navText}>← Previous</Text>
+          <Text style={[styles.navText, { writingDirection: dir }]}>{t("surahReader.previous")}</Text>
         </Pressable>
       ) : (
         <View />
       )}
       {n < TOTAL_SURAHS ? (
         <Pressable onPress={() => navigation.replace("SurahReader", { surah: n + 1 })}>
-          <Text style={styles.navText}>Next →</Text>
+          <Text style={[styles.navText, { writingDirection: dir }]}>{t("surahReader.next")}</Text>
         </Pressable>
       ) : (
         <View />
@@ -671,12 +673,12 @@ export function SurahReaderScreen({ navigation, route }: Props) {
   );
 }
 
-const UNIT_LABEL: Record<string, string> = {
-  juz: "juzʾ",
-  hizb: "ḥizb",
-  page: "pages",
-  surah: "sūrahs",
-  ayah: "ayahs",
+const UNIT_LABEL: Record<string, "surahReader.unit.juz" | "surahReader.unit.hizb" | "surahReader.unit.pages" | "surahReader.unit.surahs" | "surahReader.unit.ayahs"> = {
+  juz: "surahReader.unit.juz",
+  hizb: "surahReader.unit.hizb",
+  page: "surahReader.unit.pages",
+  surah: "surahReader.unit.surahs",
+  ayah: "surahReader.unit.ayahs",
 };
 
 /**
@@ -693,20 +695,21 @@ function PlanChip({
   styles: ReturnType<typeof makeStyles>;
   colors: Palette;
 }) {
+  const t = useT();
   const { done, total } = todayProgress(plan, todayStr());
   if (total === 0) return null;
   const complete = done >= total;
-  const unit = UNIT_LABEL[plan.template.range.unit] ?? "units";
+  const unit = t(UNIT_LABEL[plan.template.range.unit] ?? "surahReader.unit.units");
   return (
     <View style={[styles.chip, complete && styles.chipDone]}>
       {complete ? (
         <>
           <Icon name="check" size={13} color={colors.accent} sw={2} />
-          <Text style={[styles.chipText, styles.chipTextDone]}>Today’s portion done</Text>
+          <Text style={[styles.chipText, styles.chipTextDone]}>{t("surahReader.portionDone")}</Text>
         </>
       ) : (
         <Text style={styles.chipText}>
-          <Text style={styles.chipLabel}>Plan</Text> · {done} of {total} {unit} today
+          {t("surahReader.portionProgress", { done, total, unit })}
         </Text>
       )}
     </View>
