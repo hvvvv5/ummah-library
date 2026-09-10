@@ -21,6 +21,17 @@ import { mobileAchievementsStore as achievementsStore } from "../achievements-st
 import { localISODate } from "../utils";
 import { useT } from "../i18n/I18nProvider";
 
+const BADGE_NAME_KEY = {
+  "first-ayah": "badge.first-ayah", "memorizer-10": "badge.memorizer-10", "memorizer-50": "badge.memorizer-50",
+  "surah-starter": "badge.surah-starter", "surah-five": "badge.surah-five", "streak-7": "badge.streak-7",
+  "streak-30": "badge.streak-30", "streak-100": "badge.streak-100", "prayer-7": "badge.prayer-7",
+  "names-10": "badge.names-10", "names-99": "badge.names-99", "collector-5": "badge.collector-5", "collector-25": "badge.collector-25",
+} as const;
+
+function badgeNameKey(id: string) {
+  return BADGE_NAME_KEY[id as keyof typeof BADGE_NAME_KEY];
+}
+
 /**
  * "Your journey" — a progress dashboard derived entirely from the local-first
  * data the app already keeps (Hifz, prayer log, reading log, names learned,
@@ -88,7 +99,7 @@ export function ProfileScreen() {
         const first = fresh[0];
         setToast(
           fresh.length === 1 && first
-            ? t("profile.unlockedOne", { name: first.name })
+            ? t("profile.unlockedOne", { name: t(badgeNameKey(first.id)) })
             : t("profile.unlockedMany", { count: fresh.length }),
         );
         void achievementsStore.write(unlockedIds(badgeStats));
@@ -139,7 +150,7 @@ export function ProfileScreen() {
             <View style={[styles.badgeIcon, unlocked ? styles.badgeIconOn : styles.badgeIconOff]}>
               <Text style={styles.badgeGlyph}>{badge.glyph}</Text>
             </View>
-            <Text style={styles.badgeName}>{badge.name}</Text>
+            <Text style={styles.badgeName}>{t(badgeNameKey(badge.id))}</Text>
             <Text style={[styles.badgeStatus, unlocked && styles.badgeStatusOn]}>
               {unlocked ? t("profile.unlocked") : t("profile.locked")}
             </Text>

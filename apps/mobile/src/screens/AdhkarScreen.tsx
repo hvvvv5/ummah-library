@@ -15,7 +15,7 @@ import { useTheme, type Palette } from "../theme";
 import { FONT } from "../fonts";
 import { adhkarToday } from "../utils";
 import { AdhkarReminderToggle } from "../components/AdhkarReminderToggle";
-import { useT } from "../i18n/I18nProvider";
+import { useI18n } from "../i18n/I18nProvider";
 
 interface Stored {
   date: string;
@@ -32,7 +32,7 @@ async function saveCounts(counts: Record<string, number>): Promise<void> {
 }
 
 export function AdhkarScreen() {
-  const t = useT();
+  const { locale, t } = useI18n();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -120,8 +120,10 @@ export function AdhkarScreen() {
             accessibilityRole="tab"
             accessibilityState={{ selected: o.id === occasion }}
           >
-            <Text style={[styles.tabText, o.id === occasion && styles.tabTextOn]}>{o.label}</Text>
-            <Text style={[styles.tabAr, o.id === occasion && styles.tabTextOn]}>{o.arabic}</Text>
+            <Text style={[styles.tabText, o.id === occasion && styles.tabTextOn]}>
+              {locale === "ar" ? o.arabic : o.label}
+            </Text>
+            {locale === "en" && <Text style={[styles.tabAr, o.id === occasion && styles.tabTextOn]}>{o.arabic}</Text>}
           </Pressable>
         ))}
       </View>
@@ -151,12 +153,12 @@ export function AdhkarScreen() {
             key={d.id}
             style={[styles.card, done && styles.cardDone]}
             onPress={() => tap(d)}
-            accessibilityLabel={t("adhkar.accessibility", { name: d.transliteration, count, total: d.repeat })}
+            accessibilityLabel={t("adhkar.accessibility", { name: locale === "ar" ? d.arabic : d.transliteration, count, total: d.repeat })}
           >
             <Text style={styles.arabic}>{d.arabic}</Text>
-            <Text style={styles.translit}>{d.transliteration}</Text>
-            <Text style={styles.translation}>{d.translation}</Text>
-            {(d.virtue || d.source) && (
+            {locale === "en" && <Text style={styles.translit}>{d.transliteration}</Text>}
+            {locale === "en" && <Text style={styles.translation}>{d.translation}</Text>}
+            {locale === "en" && (d.virtue || d.source) && (
               <Text style={styles.meta}>{[d.virtue, d.source].filter(Boolean).join(" · ")}</Text>
             )}
             <View style={styles.cardFoot}>
@@ -178,9 +180,11 @@ export function AdhkarScreen() {
         );
       })}
 
-      <Text style={styles.foot}>
-        Tap a dhikr to count · progress resets each day · adhkar from Ḥiṣn al-Muslim
-      </Text>
+      {locale === "en" && (
+        <Text style={styles.foot}>
+          Tap a dhikr to count · progress resets each day · adhkar from Ḥiṣn al-Muslim
+        </Text>
+      )}
     </ScrollView>
   );
 }

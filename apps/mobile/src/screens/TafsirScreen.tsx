@@ -10,7 +10,7 @@ import { useI18n } from "../i18n/I18nProvider";
 /** Standalone tafsir browser: pick an edition and a surah, read it per āyah. */
 export function TafsirScreen() {
   const { colors } = useTheme();
-  const { dir, t } = useI18n();
+  const { dir, locale, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { tafsirId } = useSettings();
 
@@ -52,9 +52,9 @@ export function TafsirScreen() {
   const header = (
     <>
       <Text style={styles.surahTitle}>
-        {meta ? `${meta.transliteration} · ${meta.englishName}` : t("tafsir.surahFallback", { number: surah })}
+        {meta ? (locale === "en" ? `${meta.transliteration} · ${meta.englishName}` : meta.name) : t("tafsir.surahFallback", { number: surah })}
       </Text>
-      <Text style={styles.editionName}>{editionName}</Text>
+      <Text style={styles.editionName}>{locale === "en" ? editionName : t("tafsir.selectedEdition")}</Text>
     </>
   );
 
@@ -63,13 +63,13 @@ export function TafsirScreen() {
       <View style={styles.controls}>
         <Text style={[styles.label, { writingDirection: dir }]}>{t("tafsir.edition")}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-          {tafsirs.map((t) => (
+          {tafsirs.map((editionMeta) => (
             <Pressable
-              key={t.id}
-              style={[styles.chip, t.id === edition && styles.chipOn]}
-              onPress={() => setEdition(t.id)}
+              key={editionMeta.id}
+              style={[styles.chip, editionMeta.id === edition && styles.chipOn]}
+              onPress={() => setEdition(editionMeta.id)}
             >
-              <Text style={[styles.chipText, t.id === edition && styles.chipTextOn]}>{t.name}</Text>
+              <Text style={[styles.chipText, editionMeta.id === edition && styles.chipTextOn]}>{locale === "en" ? editionMeta.name : t("tafsir.selectedEdition")}</Text>
             </Pressable>
           ))}
         </ScrollView>

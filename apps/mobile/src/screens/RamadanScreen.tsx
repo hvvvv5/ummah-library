@@ -21,12 +21,12 @@ import { useI18n } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<ToolsStackParamList, "Ramadan">;
 
-const WORSHIP: { key: string; label: string; icon: IconName }[] = [
-  { key: "suhur", label: "Suhūr", icon: "sun" },
-  { key: "fajr", label: "Fajr in jamāʿah", icon: "moon" },
-  { key: "quran", label: "Qurʾān juzʾ", icon: "book" },
-  { key: "tarawih", label: "Tarāwīḥ", icon: "moon" },
-];
+const WORSHIP = [
+  { key: "suhur", textKey: "ramadan.worship.suhur", icon: "sun" },
+  { key: "fajr", textKey: "ramadan.worship.fajr", icon: "moon" },
+  { key: "quran", textKey: "ramadan.worship.quran", icon: "book" },
+  { key: "tarawih", textKey: "ramadan.worship.tarawih", icon: "moon" },
+] as const satisfies readonly { key: string; textKey: string; icon: IconName }[];
 
 function todayGreg() {
   const d = new Date();
@@ -35,7 +35,7 @@ function todayGreg() {
 
 export function RamadanScreen({ navigation }: Props) {
   const { colors } = useTheme();
-  const { dir, t } = useI18n();
+  const { dir, locale, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const today = localISODate(new Date());
 
@@ -131,7 +131,7 @@ export function RamadanScreen({ navigation }: Props) {
   const fastsKept = Object.keys(fasts).length;
   const worshipDone = Object.keys(worship).length;
   const khatmPct = Math.min(100, Math.round((pagesRead / 604) * 100));
-  const monthName = hijriMonth(hijri.month).name;
+  const month = hijriMonth(hijri.month);
 
   const iftar = timings ? new Date(timings.maghrib) : null;
   const suhurEnd = timings ? new Date(timings.fajr) : null;
@@ -140,7 +140,9 @@ export function RamadanScreen({ navigation }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.screen}>
       <Text style={styles.hijri}>
-        {isRamadan ? `${ramadanDay} Ramaḍān ${hijri.year} AH` : `${hijri.day} ${monthName} ${hijri.year} AH`}
+        {locale === "ar"
+          ? `${isRamadan ? ramadanDay : hijri.day} ${isRamadan ? "رمضان" : month.arabic} ${hijri.year} هـ`
+          : `${isRamadan ? `${ramadanDay} Ramaḍān` : `${hijri.day} ${month.name}`} ${hijri.year} AH`}
       </Text>
 
       {/* Ifṭār countdown */}
@@ -252,7 +254,7 @@ export function RamadanScreen({ navigation }: Props) {
                   sw={2}
                 />
               </View>
-              <Text style={[styles.worshipLabel, on && styles.worshipLabelOn]}>{w.label}</Text>
+              <Text style={[styles.worshipLabel, on && styles.worshipLabelOn]}>{t(w.textKey)}</Text>
             </Pressable>
           );
         })}

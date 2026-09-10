@@ -21,7 +21,7 @@ import {
   type Surah,
   type Translation,
 } from "@ummahlibrary/core";
-import { Khatam, Icon } from "@ummahlibrary/ui";
+import { Icon } from "@ummahlibrary/ui";
 import { api } from "../api";
 import { RECITER, RECITERS } from "../plugins";
 import { BISMILLAH, toArabicDigits } from "../format";
@@ -458,17 +458,15 @@ export function SurahReaderScreen({ navigation, route }: Props) {
   const header = (
     <>
       <View style={styles.head}>
-        <View style={styles.crest}>
-          <Khatam size={94} color={colors.accent} sw={1} opacity={0.5} />
-          <Text style={styles.crestAr}>{meta.name}</Text>
-        </View>
-        <Text style={styles.nameEn}>
-          {meta.transliteration} · {meta.englishName}
-        </Text>
-        <Text style={styles.sub}>
-          Surah {meta.number} · {meta.ayahCount} verses ·{" "}
-          {meta.revelationPlace === "meccan" ? "Meccan" : "Medinan"}
-        </Text>
+        <Text style={styles.crestAr}>{meta.name}</Text>
+        {locale === "en" && (
+          <>
+            <Text style={styles.nameEn}>{meta.transliteration} · {meta.englishName}</Text>
+            <Text style={styles.sub}>
+              Surah {meta.number} · {meta.ayahCount} verses · {meta.revelationPlace === "meccan" ? "Meccan" : "Medinan"}
+            </Text>
+          </>
+        )}
         <Pressable style={styles.bookmark} onPress={() => toggleBookmark(n)}>
           <Icon
             name="bookmark"
@@ -511,7 +509,7 @@ export function SurahReaderScreen({ navigation, route }: Props) {
             ? audio.buffering
               ? t("surahReader.loading")
               : t("surahReader.playing", { ayah: audio.playingKey })
-            : reciter.name}
+            : locale === "en" ? reciter.name : t("reader.reciterSelected")}
         </Text>
         <Pressable onPress={() => audio.setLoop(!audio.loop)} hitSlop={8} accessibilityLabel={t("audio.loop")}>
           <Icon
@@ -732,19 +730,12 @@ function makeStyles(c: Palette) {
     error: { color: c.error, fontSize: 15 },
     content: { paddingHorizontal: 18, paddingBottom: 40 },
     head: { alignItems: "center", paddingVertical: 14 },
-    crest: {
-      width: 94,
-      height: 94,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: 4,
-    },
     crestAr: {
-      position: "absolute",
       color: c.accentHi,
       fontSize: 30,
       writingDirection: "rtl",
       fontFamily: FONT.arSemibold,
+      marginBottom: 4,
     },
     nameEn: { color: c.fg, fontSize: 16, fontFamily: FONT.bold, marginTop: 6 },
     sub: { color: c.faint, fontSize: 13, marginTop: 4 },

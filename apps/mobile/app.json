@@ -24,7 +24,8 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.POST_NOTIFICATIONS"
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO"
       ],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
@@ -59,9 +60,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "ece93f61-b220-47ff-ab00-1717a57ca628"
+        "projectId": "3247653a-bb14-463f-8946-ebb3c736be40"
       }
     },
-    "owner": "rashidmahmood"
+    "owner": "modo2026"
   }
 }

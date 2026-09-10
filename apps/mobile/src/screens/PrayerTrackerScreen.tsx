@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "../Type";
 import {
   OBLIGATORY_PRAYERS,
-  PRAYER_LABELS,
   type FastingQadaLog,
   type HaidLog,
   type PrayerStatus,
@@ -42,6 +41,19 @@ const STATUS_LABEL: Record<PrayerStatus, "prayerTracker.notYet" | "prayerTracker
   ontime: "prayerTracker.onTime",
   late: "prayerTracker.late",
 };
+
+const PRAYER_LABEL_KEY = {
+  fajr: "prayer.fajr",
+  sunrise: "prayer.sunrise",
+  dhuhr: "prayer.dhuhr",
+  asr: "prayer.asr",
+  maghrib: "prayer.maghrib",
+  isha: "prayer.isha",
+} as const;
+
+function prayerLabelKey(prayer: (typeof OBLIGATORY_PRAYERS)[number]) {
+  return PRAYER_LABEL_KEY[prayer];
+}
 
 export function PrayerTrackerScreen() {
   const { colors } = useTheme();
@@ -155,7 +167,7 @@ export function PrayerTrackerScreen() {
                   {st === "none" ? "" : "✓"}
                 </Text>
               </View>
-              <Text style={styles.prayerName}>{PRAYER_LABELS[p]}</Text>
+              <Text style={styles.prayerName}>{t(prayerLabelKey(p))}</Text>
               <Text style={[styles.prayerStatus, { color: lit ? colors.accent : colors.faint }]}>
                 {t(STATUS_LABEL[st])}
               </Text>
@@ -174,7 +186,7 @@ export function PrayerTrackerScreen() {
       <View style={styles.grid}>
         {OBLIGATORY_PRAYERS.map((p, pi) => (
           <View key={p} style={styles.gridRow}>
-            <Text style={styles.gridLabel}>{PRAYER_LABELS[p]}</Text>
+            <Text style={styles.gridLabel}>{t(prayerLabelKey(p))}</Text>
             {days.map((d) => {
               const st = d.statuses[pi] ?? "none";
               const dayPaused = isDatePaused(haid, d.date);
@@ -183,9 +195,10 @@ export function PrayerTrackerScreen() {
                   key={d.date}
                   disabled={dayPaused}
                   onPress={() => cycleDate(d.date, p)}
-                  accessibilityLabel={`${PRAYER_LABELS[p]}: ${
-                    dayPaused ? "Paused" : STATUS_LABEL[st]
-                  } — tap to change`}
+                  accessibilityLabel={t("prayerTracker.changeStatusAccessibility", {
+                    prayer: t(prayerLabelKey(p)),
+                    status: dayPaused ? t("prayerTracker.paused") : t(STATUS_LABEL[st]),
+                  })}
                   style={[
                     styles.cell,
                     dayPaused
@@ -209,14 +222,14 @@ export function PrayerTrackerScreen() {
           </Text>
           <Text style={styles.haidHint}>
             {haidCurrent
-              ? `Since ${haidCurrent.start}. Prayers aren’t counted as missed; your streak is held.`
-              : "On your period? Pause tracking — those days won’t break your streak."}
+              ? t("prayerTracker.pauseActiveHint", { date: haidCurrent.start })
+              : t("prayerTracker.pauseHint")}
           </Text>
         </View>
         <Pressable
           onPress={toggleHaid}
           style={[styles.haidBtn, haidCurrent ? styles.haidBtnOutline : null]}
-          accessibilityLabel={haidCurrent ? "End cycle pause" : "Start cycle pause"}
+          accessibilityLabel={t(haidCurrent ? "prayerTracker.endPauseAccessibility" : "prayerTracker.startPauseAccessibility")}
         >
           <Text
             style={[styles.haidBtnText, { color: haidCurrent ? colors.fg : colors.accent }]}
@@ -232,13 +245,13 @@ export function PrayerTrackerScreen() {
           const owed = owedFor(qada, p);
           return (
             <View key={p} style={styles.qadaRow}>
-              <Text style={styles.qadaName}>{PRAYER_LABELS[p]}</Text>
+              <Text style={styles.qadaName}>{t(prayerLabelKey(p))}</Text>
               <View style={styles.qadaCtrls}>
                 <Pressable
                   style={[styles.step, owed === 0 && styles.stepDisabled]}
                   disabled={owed === 0}
                   onPress={() => adjustQadaFor(p, -1)}
-                  accessibilityLabel={`Make up one ${PRAYER_LABELS[p]}`}
+                  accessibilityLabel={t("prayerTracker.makeupOneAccessibility", { prayer: t(prayerLabelKey(p)) })}
                 >
                   <Text style={styles.stepMark}>−</Text>
                 </Pressable>
@@ -248,7 +261,7 @@ export function PrayerTrackerScreen() {
                 <Pressable
                   style={styles.step}
                   onPress={() => adjustQadaFor(p, 1)}
-                  accessibilityLabel={`Record a missed ${PRAYER_LABELS[p]}`}
+                  accessibilityLabel={t("prayerTracker.recordMissedAccessibility", { prayer: t(prayerLabelKey(p)) })}
                 >
                   <Text style={styles.stepMark}>+</Text>
                 </Pressable>

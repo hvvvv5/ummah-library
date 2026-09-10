@@ -17,7 +17,7 @@ const DEFAULT: TasbihRecord = { phraseId: "subhanallah", phrases: {} };
 
 export function TasbihScreen() {
   const { colors } = useTheme();
-  const { dir, t } = useI18n();
+  const { dir, locale, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [state, setState] = useState<TasbihRecord>(DEFAULT);
@@ -68,7 +68,7 @@ export function TasbihScreen() {
             onPress={() => persist({ ...state, phraseId: p.id })}
           >
             <Text style={[styles.chipText, p.id === state.phraseId && styles.chipTextOn]}>
-              {p.transliteration}
+              {locale === "ar" ? p.arabic : p.transliteration}
             </Text>
           </Pressable>
         ))}

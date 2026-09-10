@@ -17,7 +17,7 @@ import { FONT } from "../fonts";
 import { useTheme, type Palette } from "../theme";
 import { AyahBadge } from "../components/AyahBadge";
 import type { ReadStackParamList } from "../navigation/types";
-import { useT } from "../i18n/I18nProvider";
+import { useI18n } from "../i18n/I18nProvider";
 
 type Props = NativeStackScreenProps<ReadStackParamList, "SurahList">;
 
@@ -62,7 +62,7 @@ function juzEndSura(n: number): number {
 
 /** The Qur'ān index — the Read tab's landing (the home dashboard lives on Home). */
 export function SurahListScreen({ navigation }: Props) {
-  const t = useT();
+  const { locale, t } = useI18n();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
@@ -168,7 +168,7 @@ export function SurahListScreen({ navigation }: Props) {
         ListHeaderComponent={
           <View>
             <View style={styles.headerRow}>
-              <Text style={styles.h1}>Qur'ān</Text>
+              <Text style={styles.h1}>{t("surahList.quran")}</Text>
               <Pressable
                 onPress={() => navigation.navigate("Search")}
                 hitSlop={10}
@@ -242,9 +242,7 @@ export function SurahListScreen({ navigation }: Props) {
                 </View>
                 <View style={styles.rowMeta}>
                   <Text style={styles.rowTitle}>{t("surahList.juz", { number: item.juz })}</Text>
-                  <Text style={styles.rowSub} numberOfLines={1}>
-                    {span}
-                  </Text>
+                  {locale === "en" && <Text style={styles.rowSub} numberOfLines={1}>{span}</Text>}
                 </View>
               </Pressable>
             );
@@ -254,9 +252,9 @@ export function SurahListScreen({ navigation }: Props) {
             <Pressable style={styles.row} onPress={() => open(s.number)}>
               <AyahBadge n={s.number} size={40} />
               <View style={styles.rowMeta}>
-                <Text style={styles.rowTitle}>{s.transliteration}</Text>
+                {locale === "en" && <Text style={styles.rowTitle}>{s.transliteration}</Text>}
                 <Text style={styles.rowSub}>
-                  {s.revelationPlace === "meccan" ? "Meccan" : "Medinan"} · {t("surahList.verses", { count: s.ayahCount })}
+                  {t("surahList.verses", { count: s.ayahCount })}
                 </Text>
               </View>
               <Text style={styles.rowArabic}>{s.name}</Text>

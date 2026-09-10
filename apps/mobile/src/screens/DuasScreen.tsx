@@ -8,7 +8,7 @@ import { useI18n } from "../i18n/I18nProvider";
 
 export function DuasScreen() {
   const { colors } = useTheme();
-  const { dir, t } = useI18n();
+  const { dir, locale, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const featured = duaOfToday();
 
@@ -21,8 +21,8 @@ export function DuasScreen() {
         </View>
         <Text style={[styles.featuredKicker, { writingDirection: dir }]}>{t("duas.featured")}</Text>
         <Text style={styles.featuredAr}>{featured.ar}</Text>
-        <Text style={styles.featuredEn}>“{featured.en}”</Text>
-        <Text style={styles.featuredRef}>{featured.ref}</Text>
+        {locale === "en" && <Text style={styles.featuredEn}>“{featured.en}”</Text>}
+        {locale === "en" && <Text style={styles.featuredRef}>{featured.ref}</Text>}
       </View>
 
       {DUA_CATEGORIES.map((cat) => {
@@ -30,23 +30,36 @@ export function DuasScreen() {
         if (list.length === 0) return null;
         return (
           <View key={cat}>
-            <Text style={styles.sectionLabel}>{cat}</Text>
+            <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t(categoryKey(cat))}</Text>
             {list.map((d) => (
               <View key={d.ref} style={styles.card}>
                 <Text style={styles.cardAr}>{d.ar}</Text>
-                <Text style={styles.cardEn}>{d.en}</Text>
-                <Text style={styles.cardRef}>{d.ref}</Text>
+                {locale === "en" && <Text style={styles.cardEn}>{d.en}</Text>}
+                {locale === "en" && <Text style={styles.cardRef}>{d.ref}</Text>}
               </View>
             ))}
           </View>
         );
       })}
 
-      <Text style={styles.foot}>
-        Qurʾānic supplications · recite with presence of heart and certainty of response.
-      </Text>
+      <Text style={[styles.foot, { writingDirection: dir }]}>{t("duas.footer")}</Text>
     </ScrollView>
   );
+}
+
+function categoryKey(category: string):
+  | "duas.category.comprehensive"
+  | "duas.category.forgiveness"
+  | "duas.category.guidance"
+  | "duas.category.trust"
+  | "duas.category.gratitude" {
+  switch (category) {
+    case "COMPREHENSIVE": return "duas.category.comprehensive";
+    case "FORGIVENESS": return "duas.category.forgiveness";
+    case "GUIDANCE & KNOWLEDGE": return "duas.category.guidance";
+    case "TRUST & PROTECTION": return "duas.category.trust";
+    default: return "duas.category.gratitude";
+  }
 }
 
 function makeStyles(c: Palette) {

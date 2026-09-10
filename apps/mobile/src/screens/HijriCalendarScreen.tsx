@@ -19,6 +19,7 @@ import { readEventReminders, setEventReminder } from "../islamic-event-reminders
 import { useI18n } from "../i18n/I18nProvider";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+const ARABIC_WEEKDAYS = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"] as const;
 const ADJUST_OPTIONS = [-2, -1, 0, 1, 2] as const;
 
 /** "Today" / "Tomorrow" / "in N days" for an event countdown. */
@@ -28,8 +29,8 @@ function countdownLabel(daysUntil: number): string {
   return `in ${daysUntil} days`;
 }
 
-function gregorianFull(g: { year: number; month: number; day: number }): string {
-  return new Date(Date.UTC(g.year, g.month - 1, g.day)).toLocaleDateString(undefined, {
+function gregorianFull(g: { year: number; month: number; day: number }, locale: "ar" | "en"): string {
+  return new Date(Date.UTC(g.year, g.month - 1, g.day)).toLocaleDateString(locale === "ar" ? "ar" : undefined, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -45,7 +46,7 @@ function todayGregorian() {
 
 export function HijriCalendarScreen() {
   const { colors } = useTheme();
-  const { dir, t } = useI18n();
+  const { dir, locale, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [adjust, setAdjust] = useState(0);
@@ -102,7 +103,7 @@ export function HijriCalendarScreen() {
     for (let i = 0; i < firstWeekday; i++) out.push(null);
     for (let day = 1; day <= length; day++) {
       const g = hijriToGregorian({ year: view.year, month: view.month, day }, adjust);
-      const label = new Date(Date.UTC(g.year, g.month - 1, g.day)).toLocaleDateString(undefined, {
+      const label = new Date(Date.UTC(g.year, g.month - 1, g.day)).toLocaleDateString(locale === "ar" ? "ar" : undefined, {
         month: "short",
         day: "numeric",
         timeZone: "UTC",
@@ -110,7 +111,7 @@ export function HijriCalendarScreen() {
       out.push({ day, gregLabel: label });
     }
     return out;
-  }, [view, adjust]);
+  }, [view, adjust, locale]);
 
   // The viewed month's observances — one labelled source for the grid dots and
   // the panel below it.
@@ -122,6 +123,7 @@ export function HijriCalendarScreen() {
   if (!view || !today) return null;
 
   const month = hijriMonth(view.month);
+  const weekdays = locale === "ar" ? ARABIC_WEEKDAYS : WEEKDAYS;
   const eventDays = new Set(monthly.map((m) => m.event.day));
   const nextId = monthly
     .filter((m) => m.daysUntil >= 0)
@@ -134,8 +136,8 @@ export function HijriCalendarScreen() {
           <Text style={styles.navArrow}>‹</Text>
         </Pressable>
         <View style={styles.navTitle}>
-          <Text style={styles.monthEn}>{month.name} {view.year} AH</Text>
-          <Text style={styles.monthAr}>{month.arabic}</Text>
+          <Text style={styles.monthEn}>{locale === "ar" ? `${month.arabic} ${view.year} هـ` : `${month.name} ${view.year} AH`}</Text>
+          {locale === "en" && <Text style={styles.monthAr}>{month.arabic}</Text>}
         </View>
         <Pressable style={styles.navBtn} onPress={() => step(1)} accessibilityLabel={t("hijri.nextMonth")}>
           <Text style={styles.navArrow}>›</Text>
@@ -143,7 +145,7 @@ export function HijriCalendarScreen() {
       </View>
 
       <View style={styles.grid}>
-        {WEEKDAYS.map((w) => (
+        {weekdays.map((w) => (
           <Text key={w} style={styles.weekday}>{w}</Text>
         ))}
         {cells.map((cell, i) => {
@@ -175,7 +177,7 @@ export function HijriCalendarScreen() {
       <Text style={[styles.sectionLabel, { writingDirection: dir }]}>{t("hijri.observances")}</Text>
       {monthly.length === 0 ? (
         <Text style={[styles.note, { writingDirection: dir }]}>{t("hijri.noObservances")}</Text>
-      ) : (
+      ) : locale === "en" ? (
         <View style={styles.monthList}>
           {monthly.map((m) => {
             const up = m.daysUntil >= 0;
@@ -189,7 +191,7 @@ export function HijriCalendarScreen() {
                 </View>
                 <View style={styles.flex1}>
                   <Text style={styles.eventName}>{m.event.name}</Text>
-                  <Text style={styles.eventDate}>{gregorianFull(m.gregorian)} · {m.event.note}</Text>
+                  <Text style={styles.eventDate}>{gregorianFull(m.gregorian, locale)} · {m.event.note}</Text>
                 </View>
                 {up && <Text style={styles.eventCountdown}>{countdownLabel(m.daysUntil)}</Text>}
                 <Pressable
@@ -203,6 +205,17 @@ export function HijriCalendarScreen() {
               </View>
             );
           })}
+        </View>
+      ) : (
+        <View style={styles.monthList}>
+          {monthly.map((m) => (
+            <View key={m.event.id} style={styles.monthRow}>
+              <View style={styles.dayBadge}>
+                <Text style={styles.dayBadgeText}>{m.event.day}</Text>
+              </View>
+              <Text style={[styles.eventName, styles.flex1, { writingDirection: dir }]}>{t("hijri.observanceOnDay")}</Text>
+            </View>
+          ))}
         </View>
       )}
 
@@ -223,10 +236,7 @@ export function HijriCalendarScreen() {
             </Pressable>
           ))}
         </View>
-        <Text style={styles.note}>
-          The tabular calendar can sit a day either side of your local moon sighting. Nudge it to
-          match; your choice is saved on this device.
-        </Text>
+        <Text style={[styles.note, { writingDirection: dir }]}>{t("hijri.calendarNote")}</Text>
       </View>
 
       <View style={styles.sunnahSection}>

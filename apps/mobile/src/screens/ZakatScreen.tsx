@@ -11,6 +11,15 @@ import { FONT } from "../fonts";
 import { useTheme, type Palette } from "../theme";
 import { useI18n } from "../i18n/I18nProvider";
 
+const ASSET_TEXT = {
+  cash: { label: "zakat.asset.cash.label", hint: "zakat.asset.cash.hint" },
+  gold: { label: "zakat.asset.gold.label", hint: "zakat.asset.gold.hint" },
+  silver: { label: "zakat.asset.silver.label", hint: "zakat.asset.silver.hint" },
+  investments: { label: "zakat.asset.investments.label", hint: "zakat.asset.investments.hint" },
+  business: { label: "zakat.asset.business.label", hint: "zakat.asset.business.hint" },
+  receivables: { label: "zakat.asset.receivables.label", hint: "zakat.asset.receivables.hint" },
+} as const;
+
 interface ZakatState {
   currency: string;
   goldPricePerGram: string;
@@ -106,6 +115,7 @@ export function ZakatScreen() {
     state.nisabBasis === "gold"
       ? toNum(state.goldPricePerGram) > 0
       : toNum(state.silverPricePerGram) > 0;
+  const basis = t(state.nisabBasis === "silver" ? "zakat.basis.silver" : "zakat.basis.gold");
 
   function money(n: number) {
     // Sanitize defensively even here — a value written by another route (e.g. a
@@ -128,24 +138,20 @@ export function ZakatScreen() {
             {!havePrices
               ? t("zakat.needPrices")
               : result.meetsNisab
-                ? `Net wealth ${money(result.netWealth)} is above the ${state.nisabBasis} niṣāb.`
-                : `Net wealth ${money(result.netWealth)} is below the ${state.nisabBasis} niṣāb — no zakat due.`}
+                ? t("zakat.aboveNisab", { amount: money(result.netWealth), basis })
+                : t("zakat.belowNisab", { amount: money(result.netWealth), basis })}
           </Text>
           <View style={styles.heroDivider} />
           <SummaryItem label={t("zakat.totalAssets")} value={money(result.totalAssets)} colors={colors} />
           <SummaryItem label={t("zakat.netWealth")} value={money(result.netWealth)} colors={colors} strong />
           <SummaryItem
-            label={`Niṣāb (${state.nisabBasis})`}
+            label={t("zakat.nisab", { basis })}
             value={havePrices ? money(result.nisab) : "—"}
             colors={colors}
           />
         </View>
 
-        <Text style={styles.disclaimer}>
-          An educational estimate, not a fatwa. Covers cash, gold, silver, investments, and business
-          assets at 2.5% once above the niṣāb for a lunar year. Confirm your situation with a
-          qualified scholar.
-        </Text>
+        <Text style={[styles.disclaimer, { writingDirection: dir }]}>{t("zakat.disclaimer")}</Text>
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { writingDirection: dir }]}>{t("zakat.prices")}</Text>
@@ -163,7 +169,7 @@ export function ZakatScreen() {
               value={state.goldPricePerGram}
               onChangeText={(v) => update({ goldPricePerGram: sanitizeDecimal(v) })}
               keyboardType="decimal-pad"
-              placeholder="e.g. 75"
+              placeholder={t("zakat.example", { value: "75" })}
               placeholderTextColor={colors.muted}
             />
           </Row>
@@ -173,7 +179,7 @@ export function ZakatScreen() {
               value={state.silverPricePerGram}
               onChangeText={(v) => update({ silverPricePerGram: sanitizeDecimal(v) })}
               keyboardType="decimal-pad"
-              placeholder="e.g. 0.85"
+              placeholder={t("zakat.example", { value: "0.85" })}
               placeholderTextColor={colors.muted}
             />
           </Row>
@@ -197,8 +203,10 @@ export function ZakatScreen() {
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { writingDirection: dir }]}>{t("zakat.assets")}</Text>
-          {ZAKAT_ASSET_CATEGORIES.map((c) => (
-            <Row key={c.id} label={c.label} hint={c.hint}>
+          {ZAKAT_ASSET_CATEGORIES.map((c) => {
+            const copy = ASSET_TEXT[c.id as keyof typeof ASSET_TEXT];
+            return (
+            <Row key={c.id} label={t(copy.label)} hint={t(copy.hint)}>
               <TextInput
                 style={styles.input}
                 value={state.assets[c.id] ?? ""}
@@ -208,12 +216,13 @@ export function ZakatScreen() {
                 placeholderTextColor={colors.muted}
               />
             </Row>
-          ))}
+            );
+          })}
         </View>
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { writingDirection: dir }]}>{t("zakat.deductions")}</Text>
-          <Row label={t("zakat.liabilities")} hint="Immediate debts and bills due now">
+          <Row label={t("zakat.liabilities")} hint={t("zakat.liabilitiesHint")}>
             <TextInput
               style={styles.input}
               value={state.liabilities}

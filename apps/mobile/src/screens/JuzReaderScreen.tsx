@@ -135,7 +135,7 @@ export function JuzReaderScreen({ route }: Props) {
             transliteration: translitByAya.get(a.aya) ?? "",
             translitWords: wordTranslit.get(a.aya) ?? [],
             surahHeader:
-              i === 0 ? `${surah.surah.transliteration} · ${surah.surah.englishName}` : undefined,
+              i === 0 && locale === "en" ? `${surah.surah.transliteration} · ${surah.surah.englishName}` : undefined,
           };
         });
       }),
@@ -151,7 +151,7 @@ export function JuzReaderScreen({ route }: Props) {
       active = false;
       audio.stop();
     };
-  }, [juz, edition, transliteration, wordTransliteration, script, reloadToken, showTranslations]);
+  }, [juz, edition, transliteration, wordTransliteration, script, reloadToken, showTranslations, locale]);
 
   const verses = useMemo(() => (lines ?? []).map((l) => ({ sura: l.sura, aya: l.aya })), [lines]);
   const listSurahs = useMemo(() => Array.from(new Set(verses.map((v) => v.sura))), [verses]);
@@ -219,7 +219,7 @@ export function JuzReaderScreen({ route }: Props) {
           </Text>
         </Pressable>
         <Text style={styles.audioStatus} numberOfLines={1}>
-          {audio.playingKey ? t("juzReader.playing", { ayah: audio.playingKey }) : reciter.name}
+          {audio.playingKey ? t("juzReader.playing", { ayah: audio.playingKey }) : locale === "en" ? reciter.name : t("reader.reciterSelected")}
         </Text>
         <Pressable
           style={[styles.loopBtn, audio.loop && styles.loopBtnOn]}

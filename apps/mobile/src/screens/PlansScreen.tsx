@@ -43,6 +43,15 @@ import { useI18n } from "../i18n/I18nProvider";
 type Props = NativeStackScreenProps<ReadStackParamList, "Plans">;
 type Nav = Props["navigation"];
 
+const PLAN_COPY = {
+  "ramadan-khatm": ["plans.template.ramadan-khatm.name", "plans.template.ramadan-khatm.tag", "plans.template.ramadan-khatm.len", "plans.template.ramadan-khatm.desc"],
+  "juz-sprint": ["plans.template.juz-sprint.name", "plans.template.juz-sprint.tag", "plans.template.juz-sprint.len", "plans.template.juz-sprint.desc"],
+  "quran-60": ["plans.template.quran-60.name", "plans.template.quran-60.tag", "plans.template.quran-60.len", "plans.template.quran-60.desc"],
+  "quran-year": ["plans.template.quran-year.name", "plans.template.quran-year.tag", "plans.template.quran-year.len", "plans.template.quran-year.desc"],
+  "juz-amma": ["plans.template.juz-amma.name", "plans.template.juz-amma.tag", "plans.template.juz-amma.len", "plans.template.juz-amma.desc"],
+  jewels: ["plans.template.jewels.name", "plans.template.jewels.tag", "plans.template.jewels.len", "plans.template.jewels.desc"],
+} as const;
+
 function openTarget(navigation: Nav, portion: DayPortion) {
   const t = portion.target;
   if (t.kind === "juz") navigation.navigate("JuzReader", { juz: t.juz });
@@ -95,6 +104,7 @@ export function PlansScreen({ navigation }: Props) {
   const customDays = customDraft ? planDuration(customDraft) : 0;
   const customEnd = customDraft ? planEndDate(customDraft) : "";
   const customPerDay = customDays ? Math.ceil(customRange.units.length / customDays) : 0;
+  const planCopy = (id: string) => PLAN_COPY[id as keyof typeof PLAN_COPY];
 
   function createCustom() {
     if (!customDraft) return;
@@ -248,6 +258,7 @@ export function PlansScreen({ navigation }: Props) {
         {PLAN_TEMPLATES.map((pl) => {
           const isActive = plan?.template.id === pl.id;
           const plPct = isActive ? pct : 0;
+          const [nameKey, tagKey, lenKey, descKey] = planCopy(pl.id);
           return (
             <Pressable
               key={pl.id}
@@ -258,11 +269,11 @@ export function PlansScreen({ navigation }: Props) {
               }}
             >
               <View style={styles.libHead}>
-                <Text style={styles.tag}>{pl.tag}</Text>
-                <Text style={styles.len}>{pl.len}</Text>
+                <Text style={styles.tag}>{t(tagKey)}</Text>
+                <Text style={styles.len}>{t(lenKey)}</Text>
               </View>
-              <Text style={styles.libName}>{pl.name}</Text>
-              <Text style={styles.libDesc}>{pl.desc}</Text>
+              <Text style={[styles.libName, { writingDirection: dir }]}>{t(nameKey)}</Text>
+              <Text style={[styles.libDesc, { writingDirection: dir }]}>{t(descKey)}</Text>
               {isActive ? (
                 <View style={styles.progressWrap}>
                   <View style={styles.track}>

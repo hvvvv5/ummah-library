@@ -11,7 +11,7 @@ const GRADE_GOOD = "#5bbf8a";
 
 export function HadithScreen() {
   const { colors } = useTheme();
-  const { dir, t } = useI18n();
+  const { dir, locale, t } = useI18n();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [collectionId, setCollectionId] = useState<string>(HADITH_COLLECTIONS[0].id);
   const [section, setSection] = useState(1);
@@ -35,14 +35,13 @@ export function HadithScreen() {
     };
   }, [collectionId, section]);
 
-  const collectionName =
-    HADITH_COLLECTIONS.find((c) => c.id === collectionId)?.name ?? "Hadith";
+  const collectionName = HADITH_COLLECTIONS.find((c) => c.id === collectionId)?.name ?? "Hadith";
 
   return (
     <View style={styles.screen}>
       <View style={styles.controls}>
         <View style={styles.collections}>
-          {HADITH_COLLECTIONS.map((c) => (
+          {HADITH_COLLECTIONS.map((c, index) => (
             <Pressable
               key={c.id}
               style={[styles.collBtn, c.id === collectionId && styles.collBtnOn]}
@@ -52,7 +51,7 @@ export function HadithScreen() {
               }}
             >
               <Text style={[styles.collText, c.id === collectionId && styles.collTextOn]}>
-                {c.name}
+                {locale === "en" ? c.name : t("hadith.collection", { number: index + 1 })}
               </Text>
             </Pressable>
           ))}
@@ -67,7 +66,7 @@ export function HadithScreen() {
           </Pressable>
           <Text style={styles.sectionLabel} numberOfLines={1}>
             {t("hadith.book", { number: section })}
-            {data?.name ? ` · ${data.name}` : ""}
+            {locale === "en" && data?.name ? ` · ${data.name}` : ""}
           </Text>
           <Pressable style={styles.chip} onPress={() => setSection((s) => s + 1)}>
             <Text style={[styles.chipText, { writingDirection: dir }]}>{t("hadith.next")}</Text>
@@ -87,18 +86,19 @@ export function HadithScreen() {
             <View key={h.number} style={styles.card}>
               <View style={styles.cardHead}>
                 <Text style={styles.cardCol} numberOfLines={1}>
-                  {collectionName}
-                  {data?.name ? <Text style={styles.cardBook}> · {data.name}</Text> : null}
+                  {locale === "en" ? collectionName : t("hadith.collection", { number: HADITH_COLLECTIONS.findIndex((c) => c.id === collectionId) + 1 })}
+                  {locale === "en" && data?.name ? <Text style={styles.cardBook}> · {data.name}</Text> : null}
                 </Text>
-                {h.grades[0] ? <Text style={styles.grade}>{h.grades[0]}</Text> : null}
+                {locale === "en" && h.grades[0] ? <Text style={styles.grade}>{h.grades[0]}</Text> : null}
               </View>
               {h.arabic ? <Text style={styles.arabic}>{h.arabic}</Text> : null}
-              <Text style={styles.text}>{h.text}</Text>
-              <View style={styles.cardFoot}>
+              {locale === "en" && <Text style={styles.text}>{h.text}</Text>}
+              {locale === "en" && <View style={styles.cardFoot}>
                 <Text style={styles.ref}>
                   {collectionName} {h.number}
                 </Text>
               </View>
+              }
             </View>
           ))}
       </ScrollView>

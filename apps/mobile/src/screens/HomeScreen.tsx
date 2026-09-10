@@ -24,12 +24,14 @@ import { readReadingState } from "../reading-goals";
 import { KEYS, getJSON, getString } from "../storage";
 import { fmtCountdown, fmtPrayerTime, localISODate } from "../utils";
 import type { HomeStackParamList } from "../navigation/types";
-import { useT } from "../i18n/I18nProvider";
+import { useI18n } from "../i18n/I18nProvider";
+import { showQuranTranslations } from "../i18n/quran-presentation";
 
 type Props = NativeStackScreenProps<HomeStackParamList, "Today">;
 
 export function HomeScreen({ navigation }: Props) {
-  const t = useT();
+  const { locale, t } = useI18n();
+  const showTranslations = showQuranTranslations(locale);
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
@@ -104,14 +106,14 @@ export function HomeScreen({ navigation }: Props) {
   const quick: { icon: Parameters<typeof Icon>[0]["name"]; label: string; onPress: () => void }[] = [
     { icon: "book", label: t("home.read"), onPress: () => toRead() },
     { icon: "headphones", label: t("home.listen"), onPress: () => (last ? toRead({ screen: "SurahReader", params: { surah: last.number } }) : toRead()) },
-    { icon: "compass", label: "Qibla", onPress: () => toTools("Qibla") },
+    { icon: "compass", label: t("nav.qibla"), onPress: () => toTools("Qibla") },
   ];
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Assalāmu ʿalaykum</Text>
+          <Text style={styles.greeting}>{t("home.greeting")}</Text>
           <Text style={styles.title}>{t("home.today")}</Text>
         </View>
         <View style={styles.bell}>
@@ -133,10 +135,8 @@ export function HomeScreen({ navigation }: Props) {
             <View style={styles.continueRow}>
               <AyahBadge n={last.number} size={48} />
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.continueName}>{last.transliteration}</Text>
-                <Text style={styles.continueSub}>
-                  {last.englishName} · {t("home.verses", { count: last.ayahCount })}
-                </Text>
+                {locale === "en" && <Text style={styles.continueName}>{last.transliteration}</Text>}
+                <Text style={styles.continueSub}>{t("home.verses", { count: last.ayahCount })}</Text>
               </View>
               <Text style={styles.continueAr}>{last.name}</Text>
             </View>
@@ -176,8 +176,8 @@ export function HomeScreen({ navigation }: Props) {
             <SaveToCollection sura={vod.sura} aya={vod.aya} asIcon />
           </View>
           <Text style={styles.vodAr}>{vod.ar}</Text>
-          <Text style={styles.vodEn}>{vod.en}</Text>
-          <Text style={styles.vodRef}>{vod.ref}</Text>
+          {showTranslations && <Text style={styles.vodEn}>{vod.en}</Text>}
+          {locale === "en" && <Text style={styles.vodRef}>{vod.ref}</Text>}
         </View>
 
         {/* Quick actions */}

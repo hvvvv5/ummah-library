@@ -6,7 +6,7 @@ import { useTheme } from "../theme";
 import { FONT } from "../fonts";
 import { expoNotifier } from "../notifier";
 import { readSunnahFastReminderOn, setSunnahFastReminderOn } from "../sunnah-fast-reminders";
-import { useT } from "../i18n/I18nProvider";
+import { useI18n } from "../i18n/I18nProvider";
 
 const GLYPH: Record<UpcomingSunnahFast["kind"], string> = {
   "white-day": "🌕",
@@ -19,14 +19,14 @@ function todayGregorian() {
   return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() };
 }
 
-function countdownLabel(daysUntil: number, t: ReturnType<typeof useT>): string {
+function countdownLabel(daysUntil: number, t: ReturnType<typeof useI18n>["t"]): string {
   if (daysUntil === 0) return t("sunnahReminders.today");
   if (daysUntil === 1) return t("sunnahReminders.tomorrow");
   return t("sunnahReminders.inDays", { count: daysUntil });
 }
 
-function gregorianFull(g: { year: number; month: number; day: number }): string {
-  return new Date(Date.UTC(g.year, g.month - 1, g.day)).toLocaleDateString(undefined, {
+function gregorianFull(g: { year: number; month: number; day: number }, locale: "ar" | "en"): string {
+  return new Date(Date.UTC(g.year, g.month - 1, g.day)).toLocaleDateString(locale === "ar" ? "ar" : undefined, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -42,7 +42,7 @@ function gregorianFull(g: { year: number; month: number; day: number }): string 
  * location: the dates are pure Hijri/weekday arithmetic.
  */
 export function SunnahFastReminderToggle({ adjust = 0 }: { adjust?: number }) {
-  const t = useT();
+  const { locale, t } = useI18n();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [on, setOn] = useState(false);
@@ -94,7 +94,7 @@ export function SunnahFastReminderToggle({ adjust = 0 }: { adjust?: number }) {
         </View>
         {on && next && (
           <Text style={styles.nextLine}>
-            {t("sunnahReminders.next", { name: next.name, countdown: countdownLabel(next.daysUntil, t) })}
+            {t("sunnahReminders.next", { name: locale === "ar" ? t(fastNameKey(next.kind)) : next.name, countdown: countdownLabel(next.daysUntil, t) })}
           </Text>
         )}
       </View>
@@ -110,10 +110,8 @@ export function SunnahFastReminderToggle({ adjust = 0 }: { adjust?: number }) {
               <Text style={styles.badgeGlyph}>{GLYPH[f.kind]}</Text>
             </View>
             <View style={styles.flex1}>
-              <Text style={styles.fastName}>{f.name}</Text>
-              <Text style={styles.fastDate}>
-                {gregorianFull(f.gregorian)} · {f.note}
-              </Text>
+              <Text style={styles.fastName}>{locale === "ar" ? t(fastNameKey(f.kind)) : f.name}</Text>
+              {locale === "en" && <Text style={styles.fastDate}>{gregorianFull(f.gregorian, locale)} · {f.note}</Text>}
             </View>
             <Text style={styles.countdown}>{countdownLabel(f.daysUntil, t)}</Text>
           </View>
@@ -121,6 +119,15 @@ export function SunnahFastReminderToggle({ adjust = 0 }: { adjust?: number }) {
       </View>
     </View>
   );
+}
+
+function fastNameKey(kind: UpcomingSunnahFast["kind"]) {
+  const keys = {
+    monday: "sunnahReminders.monday",
+    thursday: "sunnahReminders.thursday",
+    "white-day": "sunnahReminders.whiteDays",
+  } as const;
+  return keys[kind];
 }
 
 function makeStyles(c: Palette) {

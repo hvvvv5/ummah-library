@@ -6,10 +6,10 @@ import { api } from "../api";
 import { KEYS, getJSON, isObjectRecord, setJSON } from "../storage";
 import { FONT } from "../fonts";
 import { useTheme, type Palette } from "../theme";
-import { useT } from "../i18n/I18nProvider";
+import { useI18n } from "../i18n/I18nProvider";
 
 export function NamesScreen() {
-  const t = useT();
+  const { dir, locale, t } = useI18n();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -70,8 +70,8 @@ export function NamesScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
-      <Text style={styles.h1}>The 99 Names</Text>
-      <Text style={styles.sub}>Al-Asmāʾ al-Ḥusná · {t("names.progress", { count, total: names.length })}</Text>
+      <Text style={[styles.h1, { writingDirection: dir }]}>{t("names.title")}</Text>
+      <Text style={[styles.sub, { writingDirection: dir }]}>{t("names.progress", { count, total: names.length })}</Text>
 
       {featured && (
         <View style={styles.featured}>
@@ -80,8 +80,8 @@ export function NamesScreen() {
           </View>
           <Text style={styles.featuredKicker}>{t("names.featuredCount", { number: featured.number, total: names.length })}</Text>
           <Text style={styles.featuredAr}>{featured.arabic}</Text>
-          <Text style={styles.featuredTr}>{featured.transliteration}</Text>
-          <Text style={styles.featuredMeaning}>{featured.meaning}</Text>
+          {locale === "en" && <Text style={styles.featuredTr}>{featured.transliteration}</Text>}
+          {locale === "en" && <Text style={styles.featuredMeaning}>{featured.meaning}</Text>}
         </View>
       )}
 
@@ -103,12 +103,8 @@ export function NamesScreen() {
                 <Text style={styles.num}>{n.number}</Text>
                 <Text style={styles.gridAr}>{n.arabic}</Text>
               </View>
-              <Text style={styles.translit} numberOfLines={1}>
-                {n.transliteration}
-              </Text>
-              <Text style={styles.meaning} numberOfLines={2}>
-                {n.meaning}
-              </Text>
+              {locale === "en" && <Text style={styles.translit} numberOfLines={1}>{n.transliteration}</Text>}
+              {locale === "en" && <Text style={styles.meaning} numberOfLines={2}>{n.meaning}</Text>}
             </Pressable>
           );
         })}
